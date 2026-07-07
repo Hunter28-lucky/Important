@@ -15,10 +15,30 @@ spl_autoload_register(function ($class) {
     }
     
     $relative_class = substr($class, $len);
-    $file = $base_dir . str_replace('\\', '/', $relative_class) . '.php';
+    $parts = explode('\\', $relative_class);
     
-    if (file_exists($file)) {
-        require_once $file;
+    // Convert directory parts to lowercase (e.g. Config -> config, Controllers -> controllers)
+    if (count($parts) > 1) {
+        for ($i = 0; $i < count($parts) - 1; $i++) {
+            $parts[$i] = strtolower($parts[$i]);
+        }
+    }
+    
+    $className = array_pop($parts);
+    $subDir = count($parts) > 0 ? implode('/', $parts) . '/' : '';
+    
+    // Try original case file (e.g. AdminController.php)
+    $fileOriginal = $base_dir . $subDir . $className . '.php';
+    if (file_exists($fileOriginal)) {
+        require_once $fileOriginal;
+        return;
+    }
+    
+    // Try lowercase filename fallback (e.g. database.php)
+    $fileLower = $base_dir . $subDir . strtolower($className) . '.php';
+    if (file_exists($fileLower)) {
+        require_once $fileLower;
+        return;
     }
 });
 
