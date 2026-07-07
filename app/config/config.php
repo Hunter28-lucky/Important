@@ -10,9 +10,21 @@ error_reporting(E_ALL);
 define('APP_NAME', 'TemplateLink Builder');
 define('APP_ROOT', dirname(dirname(__DIR__)));
 
-// Determine Base URL dynamically
-$protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? 'https://' : 'http://';
-$host = $_SERVER['HTTP_HOST'] ?? 'localhost:8000';
+// Determine Base URL dynamically (reverse-proxy aware for Wasmer Edge/Cloudflared)
+$protocol = 'http://';
+if (isset($_SERVER['HTTP_X_FORWARDED_PROTO'])) {
+    $protocol = strtolower($_SERVER['HTTP_X_FORWARDED_PROTO']) . '://';
+} elseif (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') {
+    $protocol = 'https://';
+}
+
+$host = 'localhost:8000';
+if (isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
+    $host = $_SERVER['HTTP_X_FORWARDED_HOST'];
+} elseif (isset($_SERVER['HTTP_HOST'])) {
+    $host = $_SERVER['HTTP_HOST'];
+}
+
 // Find subdirectories if not running at root level
 $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
 $subDir = str_replace('/public/index.php', '', $scriptName);

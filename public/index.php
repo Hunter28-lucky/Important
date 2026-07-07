@@ -1,5 +1,11 @@
 <?php
-// Front Controller and Router for TemplateLink Builder
+// Route static assets directly if running inside PHP's built-in webserver (WASM/Wasmer Edge)
+if (php_sapi_name() === 'cli-server') {
+    $filePath = __DIR__ . parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+    if (is_file($filePath)) {
+        return false;
+    }
+}
 
 // Include config & session setup
 require_once dirname(__DIR__) . '/app/config/config.php';
