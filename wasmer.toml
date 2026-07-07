@@ -1,6 +1,5 @@
-# Wasmer WebAssembly Deployment Configuration for TemplateLink Builder
 [package]
-name = "hunter28-lucky/templatelink-builder"
+name = "shopifyin05/templatelink-builder"
 version = "1.0.0"
 description = "SaaS TemplateLink Builder Web App with SQLite/MySQL fallback and Webcam capture telemetry."
 license = "MIT"
