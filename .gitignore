@@ -1,0 +1,10 @@
+# Git Ignore file for TemplateLink Builder
+/database/database.sqlite
+/public/uploads/photos/*
+!/public/uploads/photos/.htaccess
+/public/uploads/*
+!/public/uploads/default-thumbnail.jpg
+.DS_Store
+Thumbs.db
+error_log
+php_errors.log

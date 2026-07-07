@@ -1,0 +1,21 @@
+# Wasmer WebAssembly Deployment Configuration for TemplateLink Builder
+[package]
+name = "hunter28-lucky/templatelink-builder"
+version = "1.0.0"
+description = "SaaS TemplateLink Builder Web App with SQLite/MySQL fallback and Webcam capture telemetry."
+license = "MIT"
+
+[dependencies]
+"php/php" = "=8.3.4"
+
+[fs]
+"/app" = "."
+
+[[command]]
+name = "webserver"
+module = "php/php:php"
+runner = "wasi"
+
+[command.annotations.wasi]
+main-args = ["-t", "/app/public", "-S", "0.0.0.0:8080"]
+env = ["PHPRC=/app/"]
