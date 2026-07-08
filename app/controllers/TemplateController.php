@@ -190,6 +190,23 @@ class TemplateController extends Controller {
                 $updateData['thumbnail_url'] = $_POST['thumbnail_url'];
             }
 
+            // Accept SEO / Open Graph fields from visual editor
+            if (isset($_POST['meta_title'])) {
+                $updateData['meta_title'] = $_POST['meta_title'];
+            }
+            if (isset($_POST['meta_description'])) {
+                $updateData['meta_description'] = $_POST['meta_description'];
+            }
+            if (isset($_POST['og_title'])) {
+                $updateData['og_title'] = $_POST['og_title'];
+            }
+            if (isset($_POST['og_description'])) {
+                $updateData['og_description'] = $_POST['og_description'];
+            }
+            if (isset($_POST['og_image'])) {
+                $updateData['og_image'] = $_POST['og_image'];
+            }
+
             $templateModel->update($id, $updateData);
             $this->json(['success' => true, 'message' => 'Template visual layout saved successfully.']);
         } else {

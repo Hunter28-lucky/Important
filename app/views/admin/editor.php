@@ -284,6 +284,9 @@
             </div>
             
             <div class="topbar-right">
+                <button type="button" class="btn btn-sm btn-secondary" id="btnSeoSettings" title="SEO & Link Preview" style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.4rem 0.8rem; border-radius: 8px;">
+                    <i class="fa-solid fa-share-nodes"></i> SEO
+                </button>
                 <select id="tmplStatus" class="topbar-input" style="width: 100px; cursor: pointer; border-color: rgba(99,102,241,0.15); background-color: rgba(99,102,241,0.05); color: #cbd5e1;">
                     <option value="draft" <?= $template['status'] === 'draft' ? 'selected' : '' ?>>Draft</option>
                     <option value="published" <?= $template['status'] === 'published' ? 'selected' : '' ?>>Published</option>
@@ -425,8 +428,51 @@
         </div>
     </dialog>
 
+    <!-- SEO / Link Share Preview Dialog -->
+    <dialog id="seoSettingsModal" closedby="any" aria-labelledby="seoModalTitle">
+        <div class="modal-header">
+            <h3 id="seoModalTitle"><i class="fa-solid fa-share-nodes" style="color: var(--primary); margin-right: 0.4rem;"></i> Link Share Preview (SEO)</h3>
+            <button class="close-modal">&times;</button>
+        </div>
+        <div class="modal-body" style="display: flex; flex-direction: column; gap: 1rem;">
+            <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.4; margin-bottom: 0.5rem;">Configure how this link appears when shared on social media (WhatsApp, Facebook, LinkedIn, Twitter). These Open Graph tags control the title, description, and image shown in link previews.</p>
+            
+            <div class="form-group-sm">
+                <label style="font-weight: 600; color: #cbd5e1;">OG Title (Link Preview Title)</label>
+                <input type="text" class="prop-input" id="seo_og_title" placeholder="e.g. Important Notice from XMA India">
+            </div>
+            <div class="form-group-sm">
+                <label style="font-weight: 600; color: #cbd5e1;">OG Description (Link Preview Description)</label>
+                <textarea class="prop-input" id="seo_og_description" rows="3" placeholder="e.g. Read this important notice about..."></textarea>
+            </div>
+            <div class="form-group-sm">
+                <label style="font-weight: 600; color: #cbd5e1;">OG Image URL (Link Preview Image / Logo)</label>
+                <div style="display: flex; gap: 0.5rem;">
+                    <input type="text" class="prop-input" id="seo_og_image" placeholder="https://example.com/image.jpg" style="flex: 1;">
+                    <button type="button" class="btn btn-sm btn-secondary" id="btnPickOgImage" style="white-space: nowrap;"><i class="fa-solid fa-photo-film"></i> Pick</button>
+                </div>
+                <small style="color: #888;">The image/logo that appears in the link preview card. Recommended size: 1200×630px.</small>
+            </div>
+            
+            <hr style="border-color: rgba(255,255,255,0.05); margin: 0.5rem 0;">
+            
+            <div class="form-group-sm">
+                <label style="font-weight: 600; color: #cbd5e1;">Meta Title (Browser Tab / Search Engine)</label>
+                <input type="text" class="prop-input" id="seo_meta_title" placeholder="Page title for search engines">
+            </div>
+            <div class="form-group-sm">
+                <label style="font-weight: 600; color: #cbd5e1;">Meta Description (Search Engine Snippet)</label>
+                <textarea class="prop-input" id="seo_meta_description" rows="2" placeholder="Brief description for search results"></textarea>
+            </div>
+            
+            <button type="button" class="btn btn-primary w-full" id="btnSaveSeoSettings" style="margin-top: 0.5rem;">
+                <i class="fa-solid fa-check"></i> Apply SEO Settings
+            </button>
+        </div>
+    </dialog>
+
     <!-- Initialise Editor App JS -->
-    <script src="<?= BASE_URL ?>assets/js/editor.js"></script>
+    <script src="<?= BASE_URL ?>assets/js/editor.js?v=<?= filemtime(APP_ROOT . '/public/assets/js/editor.js') ?>"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Initialise builder object
@@ -434,7 +480,14 @@
                 templateId: <?= $template['id'] ?>,
                 initialBlocks: <?= $template['content'] ? $template['content'] : '[]'  ?>,
                 csrfToken: '<?= $_SESSION['csrf_token'] ?>',
-                baseUrl: '<?= BASE_URL ?>'
+                baseUrl: '<?= BASE_URL ?>',
+                seoData: {
+                    meta_title: <?= json_encode($template['meta_title'] ?? '') ?>,
+                    meta_description: <?= json_encode($template['meta_description'] ?? '') ?>,
+                    og_title: <?= json_encode($template['og_title'] ?? '') ?>,
+                    og_description: <?= json_encode($template['og_description'] ?? '') ?>,
+                    og_image: <?= json_encode($template['og_image'] ?? '') ?>
+                }
             });
         });
     </script>
