@@ -339,13 +339,27 @@ try {
             'content' => [
                 'title' => '<i class="fa-brands fa-instagram" style="font-size: 3.5rem; display: block; margin-bottom: 1rem; color: #ffffff;"></i> Instagram Stickers Store',
                 'subtitle' => 'Download the ultimate aesthetic stickers pack to boost your stories and engagements! Free to use for personal creators.',
-                'btn_text' => 'Unlock Pack Now',
-                'btn_url' => '#download-section',
                 'bg_type' => 'gradient',
                 'bg_value' => 'linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)',
                 'text_color' => '#ffffff',
                 'padding' => '80px 20px',
                 'text_align' => 'center'
+            ]
+        ],
+        [
+            'id' => 'insta-btn-unlock',
+            'type' => 'button',
+            'content' => [
+                'btn_text' => 'Unlock Pack Now',
+                'btn_url' => '#insta-loc',
+                'open_new_tab' => false,
+                'alignment' => 'center',
+                'btn_size' => 'lg',
+                'bg_color' => '#ffffff',
+                'text_color' => '#dc2743',
+                'padding' => '20px 20px',
+                'bg_type' => 'gradient',
+                'bg_value' => 'linear-gradient(45deg, #dc2743 0%, #cc2366 50%, #bc1888 100%)'
             ]
         ],
         [
