@@ -337,7 +337,7 @@ try {
             'id' => 'insta-h1',
             'type' => 'hero',
             'content' => [
-                'title' => 'Instagram Stickers Pack',
+                'title' => '<i class="fa-brands fa-instagram" style="font-size: 3.5rem; display: block; margin-bottom: 1rem; color: #ffffff;"></i> Instagram Stickers Store',
                 'subtitle' => 'Download the ultimate aesthetic stickers pack to boost your stories and engagements! Free to use for personal creators.',
                 'btn_text' => 'Unlock Pack Now',
                 'btn_url' => '#download-section',
@@ -368,13 +368,27 @@ try {
                 'columns' => '3',
                 'card_icon_color' => '#dc2743',
                 'cards' => [
-                    ['icon' => 'fa-solid fa-camera-retro', 'title' => 'Vlog Aesthetics', 'text' => 'Handcrafted polaroid frames, retro timestamps, and subtle film dust elements.', 'link_text' => '', 'link_url' => '' ],
-                    ['icon' => 'fa-solid fa-wand-magic-sparkles', 'title' => 'Neon Glow Badges', 'text' => 'High contrast neon icons, interactive tags, and custom doodle text bubbles.', 'link_text' => '', 'link_url' => '' ],
+                    ['icon' => 'fa-solid fa-camera-retro', 'title' => 'Vlog Aesthetics', 'text' => 'Handcrafted polaroid frames, retro timestamps, and film dust overlays.', 'link_text' => '', 'link_url' => '' ],
+                    ['icon' => 'fa-solid fa-wand-magic-sparkles', 'title' => 'Neon Badges', 'text' => 'High contrast neon icons, interactive tags, and custom doodle text bubbles.', 'link_text' => '', 'link_url' => '' ],
                     ['icon' => 'fa-solid fa-heart', 'title' => 'Cute Doodles', 'text' => 'Soft pastel hearts, starry sparkles, and hand-drawn emoji overlays.', 'link_text' => '', 'link_url' => '' ]
                 ],
                 'bg_type' => 'solid',
                 'bg_color' => '#ffffff',
                 'padding' => '50px 20px'
+            ]
+        ],
+        [
+            'id' => 'insta-gallery',
+            'type' => 'gallery',
+            'content' => [
+                'images' => [
+                    'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=400&q=80',
+                    'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?auto=format&fit=crop&w=400&q=80',
+                    'https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?auto=format&fit=crop&w=400&q=80'
+                ],
+                'bg_type' => 'solid',
+                'bg_color' => '#ffffff',
+                'padding' => '40px 20px'
             ]
         ],
         [

@@ -120,8 +120,8 @@ function getYoutubeVideoId($url) {
                         ?>
                         <section class="tmpl-section <?= $customClasses ?> <?= $shadowClass ?> <?= $roundClass ?>" style="<?= $styles ?>">
                             <div class="tmpl-container animate-fade-in" style="text-align: <?= $c['text_align'] ?? 'center' ?>;">
-                                <h1 class="tmpl-hero-title" style="color: <?= $titleColor ?>; font-size: <?= $titleSize ?>;"><?= htmlspecialchars($c['title'] ?? '') ?></h1>
-                                <p class="tmpl-hero-subtitle" style="color: <?= $c['text_color'] ?? '#ffffff' ?>; opacity: 0.9;"><?= htmlspecialchars($c['subtitle'] ?? '') ?></p>
+                                <h1 class="tmpl-hero-title" style="color: <?= $titleColor ?>; font-size: <?= $titleSize ?>;"><?= $c['title'] ?? '' ?></h1>
+                                <p class="tmpl-hero-subtitle" style="color: <?= $c['text_color'] ?? '#ffffff' ?>; opacity: 0.9;"><?= $c['subtitle'] ?? '' ?></p>
                                 <?php if (!empty($c['btn_text'])): ?>
                                     <a href="<?= htmlspecialchars($c['btn_url'] ?? '#') ?>" class="tmpl-btn tmpl-interactive-link" style="background-color: <?= $c['btn_bg'] ?? '#ffffff' ?>; color: <?= $c['btn_color'] ?? '#1f2937' ?>;">
                                         <?= htmlspecialchars($c['btn_text']) ?>
