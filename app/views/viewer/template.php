@@ -485,6 +485,35 @@ function getYoutubeVideoId($url) {
                             <?php
                         endif;
                         break;
+
+                    case 'button':
+                        $btnUrl = $c['btn_url'] ?? '#';
+                        $btnText = $c['btn_text'] ?? 'Action Button';
+                        $btnSize = $c['btn_size'] ?? 'md';
+                        $btnAlign = $c['alignment'] ?? 'center';
+                        $btnIsDownload = !empty($c['is_download']);
+                        $btnDownloadName = $c['download_name'] ?? '';
+                        
+                        $btnStyles = "background-color: " . ($c['bg_color'] ?? '#6366f1') . "; color: " . ($c['text_color'] ?? '#ffffff') . ";";
+                        $btnClass = 'tmpl-btn';
+                        if ($btnSize === 'sm') $btnClass .= ' btn-sm';
+                        if ($btnSize === 'lg') $btnClass .= ' btn-lg';
+                        ?>
+                        <section class="tmpl-section <?= $customClasses ?> <?= $shadowClass ?> <?= $roundClass ?>" style="<?= $styles ?>">
+                            <div class="tmpl-container animate-fade-in" style="text-align: <?= $btnAlign ?>;">
+                                <a href="<?= htmlspecialchars($btnUrl) ?>" 
+                                   class="<?= $btnClass ?> tmpl-interactive-link" 
+                                   style="<?= $btnStyles ?>"
+                                   <?= $btnIsDownload ? 'download="' . htmlspecialchars($btnDownloadName) . '"' : '' ?>>
+                                    <?php if ($btnIsDownload): ?>
+                                        <i class="fa-solid fa-download" style="margin-right: 0.5rem;"></i>
+                                    <?php endif; ?>
+                                    <?= htmlspecialchars($btnText) ?>
+                                </a>
+                            </div>
+                        </section>
+                        <?php
+                        break;
                 }
             endforeach;
         endif; 

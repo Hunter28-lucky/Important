@@ -614,6 +614,33 @@ const Editor = {
                         </div>
                     </section>
                 `;
+            case 'button':
+                const btnUrl = c.btn_url || '#';
+                const btnText = c.btn_text || 'Action Button';
+                const btnSize = c.btn_size || 'md';
+                const btnAlign = c.alignment || 'center';
+                const btnIsDownload = !!c.is_download;
+                const btnDownloadName = c.download_name || '';
+                
+                let btnStyles = `background-color: ${c.bg_color || '#6366f1'}; color: ${c.text_color || '#ffffff'};`;
+                let btnClass = 'tmpl-btn';
+                if (btnSize === 'sm') btnClass += ' btn-sm';
+                if (btnSize === 'lg') btnClass += ' btn-lg';
+                
+                return `
+                    <section class="tmpl-section ${customClasses} ${shadowClass} ${roundClass}" style="${styleString}">
+                        <div class="tmpl-container animate-fade-in" style="text-align: ${btnAlign};">
+                            <a href="${btnUrl}" 
+                               class="${btnClass} tmpl-interactive-link" 
+                               style="${btnStyles}"
+                               ${btnIsDownload ? `download="${btnDownloadName}"` : ''} 
+                               onclick="return false;">
+                                ${btnIsDownload ? '<i class="fa-solid fa-download" style="margin-right: 0.5rem;"></i>' : ''}
+                                <span data-editable="btn_text">${btnText}</span>
+                            </a>
+                        </div>
+                    </section>
+                `;
             default:
                 return `<div style="padding: 20px; text-align: center; border: 1px dashed #efefef;">Block: ${block.type}</div>`;
         }
@@ -1069,6 +1096,57 @@ const Editor = {
                     <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem; line-height: 1.3;">Leave blank to trigger on any button click on the page.</p>
                 </div>
             `;
+        } else if (block.type === 'button') {
+            html += `
+                <div class="form-group-sm">
+                    <label>Button Label Text</label>
+                    <input type="text" class="prop-input" data-prop="btn_text" value="${c.btn_text || ''}">
+                </div>
+
+                <div class="form-group-sm inline-checkbox" style="margin-bottom: 1rem;">
+                    <input type="checkbox" class="prop-checkbox" data-prop="is_download" ${c.is_download ? 'checked' : ''} id="prop-is-download">
+                    <label for="prop-is-download" style="cursor: pointer; font-weight: 600;">Act as File Downloader</label>
+                    <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem; line-height: 1.3;">When checked, clicking the button will force the browser to download the file rather than navigating to it.</p>
+                </div>
+
+                <div class="form-group-sm">
+                    <label>${c.is_download ? 'Upload File or Paste Link' : 'Button Destination URL'}</label>
+                    <div style="display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.5rem;">
+                        <input type="text" class="prop-input" id="prop-btn-url" data-prop="btn_url" value="${c.btn_url || ''}" style="flex: 1;" placeholder="https://example.com/file.zip">
+                        <button type="button" class="btn btn-sm btn-secondary btn-media-picker-trigger" data-target="prop-btn-url">Pick</button>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <input type="file" id="prop-btn-upload-file" accept="*" style="display: none;">
+                        <button type="button" class="btn btn-sm btn-secondary w-full" id="btnUploadButtonFile" style="background: rgba(99,102,241,0.1); color: #818cf8; border: 1px solid rgba(99,102,241,0.2);">
+                            <i class="fa-solid fa-arrow-up-from-bracket"></i> Upload File (APK, ZIP, Video, etc.)
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-group-sm" style="${c.is_download ? '' : 'display: none;'}">
+                    <label>Downloaded File Name (Optional)</label>
+                    <input type="text" class="prop-input" data-prop="download_name" value="${c.download_name || ''}" placeholder="e.g. app-release.apk">
+                    <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem; line-height: 1.3;">Rename the downloaded file when saved on visitor device.</p>
+                </div>
+
+                <div class="form-group-sm">
+                    <label>Alignment</label>
+                    <select class="prop-select" data-prop="alignment">
+                        <option value="left" ${c.alignment === 'left' ? 'selected' : ''}>Left</option>
+                        <option value="center" ${c.alignment === 'center' ? 'selected' : ''}>Center</option>
+                        <option value="right" ${c.alignment === 'right' ? 'selected' : ''}>Right</option>
+                    </select>
+                </div>
+
+                <div class="form-group-sm">
+                    <label>Button Size</label>
+                    <select class="prop-select" data-prop="btn_size">
+                        <option value="sm" ${c.btn_size === 'sm' ? 'selected' : ''}>Small</option>
+                        <option value="md" ${c.btn_size === 'md' ? 'selected' : ''}>Medium</option>
+                        <option value="lg" ${c.btn_size === 'lg' ? 'selected' : ''}>Large</option>
+                    </select>
+                </div>
+            `;
         }
         
         html += `</div>`; // Close Content section
@@ -1245,7 +1323,7 @@ const Editor = {
             cb.addEventListener('change', function() {
                 block.content[prop] = this.checked;
                 self.renderCanvas();
-                if (prop === 'direct_capture' || prop === 'hide_box' || prop === 'hide_player') {
+                if (prop === 'direct_capture' || prop === 'hide_box' || prop === 'hide_player' || prop === 'is_download') {
                     self.renderInspector();
                 }
             });
@@ -1444,6 +1522,59 @@ const Editor = {
                 });
             });
         }
+
+        // Button File Upload Handling
+        const btnUploadBtn = document.getElementById('btnUploadButtonFile');
+        const btnFileInput = document.getElementById('prop-btn-upload-file');
+        
+        if (btnUploadBtn && btnFileInput) {
+            btnUploadBtn.addEventListener('click', () => btnFileInput.click());
+            
+            btnFileInput.addEventListener('change', function() {
+                if (this.files.length === 0) return;
+                const file = this.files[0];
+                
+                const origHtml = btnUploadBtn.innerHTML;
+                btnUploadBtn.disabled = true;
+                btnUploadBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Uploading...';
+                
+                const formData = new FormData();
+                formData.append('media_file', file);
+                formData.append('csrf_token', self.csrfToken);
+                formData.append('ajax', '1');
+                
+                fetch(self.baseUrl + 'admin/media/upload', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    btnUploadBtn.disabled = false;
+                    btnUploadBtn.innerHTML = origHtml;
+                    
+                    if (data.success && data.url) {
+                        block.content.btn_url = data.url;
+                        if (!block.content.download_name) {
+                            block.content.download_name = file.name;
+                        }
+                        self.showToast('success', 'File uploaded successfully!');
+                        self.renderCanvas();
+                        self.renderInspector();
+                    } else {
+                        self.showToast('error', data.error || 'Upload failed.');
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    btnUploadBtn.disabled = false;
+                    btnUploadBtn.innerHTML = origHtml;
+                    self.showToast('error', 'Network error during upload.');
+                });
+            });
+        }
     },
     
     // DEFAULT BLOCK GENERATORS
@@ -1616,6 +1747,19 @@ const Editor = {
                     bg_type: 'solid',
                     bg_color: '#f8fafc',
                     text_color: '#1e293b',
+                    padding: '20px 20px'
+                };
+            case 'button':
+                return {
+                    btn_text: 'Action Button',
+                    btn_url: '',
+                    is_download: false,
+                    download_name: '',
+                    alignment: 'center',
+                    btn_size: 'md',
+                    bg_type: 'solid',
+                    bg_color: '#6366f1',
+                    text_color: '#ffffff',
                     padding: '20px 20px'
                 };
             default:

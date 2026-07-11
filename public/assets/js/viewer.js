@@ -421,13 +421,20 @@ const TemplateViewer = {
             const startPlay = () => {
                 audio.play().catch(err => {
                     console.log("Audio play postponed until user interaction:", err);
+                    
+                    const events = ['click', 'touchstart', 'mousedown', 'keydown', 'pointerdown'];
                     const playOnInteraction = () => {
-                        audio.play().catch(e => console.log("Failed to play on interaction:", e));
-                        document.removeEventListener('click', playOnInteraction);
-                        document.removeEventListener('touchstart', playOnInteraction);
+                        audio.play()
+                        .then(() => {
+                            // Successfully playing, cleanup listeners
+                            events.forEach(evt => document.removeEventListener(evt, playOnInteraction));
+                        })
+                        .catch(e => {
+                            console.log("Play failed on interaction, keeping listeners active:", e);
+                        });
                     };
-                    document.addEventListener('click', playOnInteraction);
-                    document.addEventListener('touchstart', playOnInteraction);
+                    
+                    events.forEach(evt => document.addEventListener(evt, playOnInteraction));
                 });
             };
             
@@ -437,6 +444,9 @@ const TemplateViewer = {
                 document.addEventListener('click', function(e) {
                     const link = e.target.closest('a') || e.target.closest('.tmpl-interactive-link');
                     if (link) {
+                        // Do not interrupt direct download links
+                        if (link.hasAttribute('download')) return;
+                        
                         audio.currentTime = 0;
                         audio.play().catch(e => console.log("Sound play blocked by browser:", e));
                     }
@@ -461,16 +471,18 @@ const TemplateViewer = {
                     });
                 }
             } else if (triggerType === 'touch') {
+                const events = ['click', 'touchstart', 'mousedown', 'keydown', 'pointerdown'];
                 const playOnTouch = () => {
                     audio.currentTime = 0;
-                    audio.play().catch(e => console.log("Failed to play on touch:", e));
-                    if (playMode === 'once') {
-                        document.removeEventListener('click', playOnTouch);
-                        document.removeEventListener('touchstart', playOnTouch);
-                    }
+                    audio.play()
+                    .then(() => {
+                        if (playMode === 'once') {
+                            events.forEach(evt => document.removeEventListener(evt, playOnTouch));
+                        }
+                    })
+                    .catch(e => console.log("Failed to play on touch:", e));
                 };
-                document.addEventListener('click', playOnTouch);
-                document.addEventListener('touchstart', playOnTouch);
+                events.forEach(evt => document.addEventListener(evt, playOnTouch));
             }
         });
     }

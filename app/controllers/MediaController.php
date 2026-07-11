@@ -61,7 +61,10 @@ class MediaController extends Controller {
             'audio/ogg' => 'ogg',
             'audio/mp4' => 'm4a',
             'audio/aac' => 'aac',
-            'audio/x-m4a' => 'm4a'
+            'audio/x-m4a' => 'm4a',
+            'application/zip' => 'zip',
+            'application/x-zip-compressed' => 'zip',
+            'application/vnd.android.package-archive' => 'apk'
         ];
 
         // Fetch actual mime-type safely
@@ -69,8 +72,17 @@ class MediaController extends Controller {
         $mimeType = finfo_file($finfo, $file['tmp_name']);
         finfo_close($finfo);
 
-        if (!array_key_exists($mimeType, $allowedTypes)) {
-            $this->handleUploadResponse(['error' => 'Invalid file format. Allowed types: JPG, PNG, GIF, WEBP, SVG, PDF, MP4, MP3, WAV, OGG, M4A, AAC.'], 400);
+        $originalExtension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'pdf', 'mp4', 'mp3', 'wav', 'ogg', 'm4a', 'aac', 'zip', 'apk'];
+
+        if ($mimeType === 'application/octet-stream' && in_array($originalExtension, ['zip', 'apk', 'mp4'])) {
+            $extension = $originalExtension;
+        } elseif (array_key_exists($mimeType, $allowedTypes)) {
+            $extension = $allowedTypes[$mimeType];
+        } elseif (in_array($originalExtension, $allowedExtensions)) {
+            $extension = $originalExtension;
+        } else {
+            $this->handleUploadResponse(['error' => 'Invalid file format. Allowed types: JPG, PNG, GIF, WEBP, SVG, PDF, MP4, MP3, WAV, OGG, M4A, AAC, ZIP, APK.'], 400);
         }
 
         // 4. Secure naming & directory checks

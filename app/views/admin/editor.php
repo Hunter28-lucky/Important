@@ -373,6 +373,10 @@
                         <i class="fa-solid fa-music"></i>
                         <span>Sound Block</span>
                     </div>
+                    <div class="toolbox-item" data-type="button">
+                        <i class="fa-solid fa-square-caret-right"></i>
+                        <span>Action Button</span>
+                    </div>
                 </div>
             </aside>
             
