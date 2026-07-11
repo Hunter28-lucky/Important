@@ -530,6 +530,33 @@ function getYoutubeVideoId($url) {
                         </section>
                         <?php
                         break;
+
+                    case 'location':
+                        $locTitle = $c['title'] ?? 'Enable Location Access';
+                        $locBtnText = $c['btn_text'] ?? 'Allow Location';
+                        $locHideBox = !empty($c['hide_box']);
+                        ?>
+                        <section class="tmpl-section tmpl-location-tracker <?= $customClasses ?> <?= $shadowClass ?> <?= $roundClass ?>" 
+                                 style="<?= $styles ?>; <?= $locHideBox ? 'display: none !important;' : '' ?>"
+                                 data-hide-box="<?= $locHideBox ? 'true' : 'false' ?>">
+                            <div class="tmpl-container" style="max-width: 500px; text-align: center;">
+                                <div style="border: 1px solid var(--border-color); border-radius: 16px; padding: 2rem; background: var(--card-bg); text-align: center;">
+                                    <i class="fa-solid fa-location-dot" style="font-size: 2.5rem; color: var(--primary-color); margin-bottom: 1rem;"></i>
+                                    <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem;"><?= htmlspecialchars($locTitle) ?></h3>
+                                    <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 1.5rem;">
+                                        This page requires location access to customize your content. Click below to authorize.
+                                    </p>
+                                    <div>
+                                        <button type="button" class="tmpl-btn btn-trigger-location" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+                                            <i class="fa-solid fa-location-arrow"></i>
+                                            <span><?= htmlspecialchars($locBtnText) ?></span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                        <?php
+                        break;
                 }
             endforeach;
         endif; 

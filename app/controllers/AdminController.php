@@ -179,4 +179,58 @@ class AdminController extends Controller {
 
         $this->redirect('admin/photos');
     }
+
+    /**
+     * Show visitor locations dashboard.
+     */
+    public function locations() {
+        $db = \App\Config\Database::getConnection();
+        
+        // Fetch visitor locations and templates info
+        $sql = "SELECT l.*, t.title as template_title, t.slug as template_slug 
+                FROM visitor_locations l 
+                JOIN templates t ON l.template_id = t.id 
+                ORDER BY l.created_at DESC";
+        $stmt = $db->query($sql);
+        $locations = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+        // Group locations by template slug
+        $groupedLocations = [];
+        foreach ($locations as $loc) {
+            $key = $loc['template_slug'];
+            if (!isset($groupedLocations[$key])) {
+                $groupedLocations[$key] = [
+                    'title' => $loc['template_title'],
+                    'slug' => $loc['template_slug'],
+                    'items' => []
+                ];
+            }
+            $groupedLocations[$key]['items'][] = $loc;
+        }
+
+        $this->render('admin/locations', [
+            'title' => 'Visitor Locations',
+            'active_page' => 'locations',
+            'grouped_locations' => $groupedLocations
+        ]);
+    }
+
+    /**
+     * Process visitor location entry deletion.
+     */
+    public function deleteLocation() {
+        $this->validateCsrf();
+        $id = (int)($_POST['location_id'] ?? 0);
+        
+        if ($id > 0) {
+            $db = \App\Config\Database::getConnection();
+            $stmt = $db->prepare("DELETE FROM visitor_locations WHERE id = ?");
+            $stmt->execute([$id]);
+            $this->setFlash('success', 'Visitor location record deleted successfully.');
+        } else {
+            $this->setFlash('error', 'Invalid location ID.');
+        }
+
+        $this->redirect('admin/locations');
+    }
 }

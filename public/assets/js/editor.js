@@ -641,6 +641,37 @@ const Editor = {
                         </div>
                     </section>
                 `;
+            case 'location':
+                const locTitle = c.title || 'Enable Location Access';
+                const locBtnText = c.btn_text || 'Allow Location';
+                const locHideBox = !!c.hide_box;
+                const locHiddenOverlay = locHideBox ? `
+                    <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: repeating-linear-gradient(45deg, rgba(99,102,241,0.04), rgba(99,102,241,0.04) 10px, transparent 10px, transparent 20px); border-radius: 16px; display: flex; align-items: center; justify-content: center; z-index: 2; pointer-events: none;">
+                        <div style="background: rgba(99,102,241,0.9); color: white; padding: 0.4rem 1rem; border-radius: 8px; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.5px;">
+                            <i class="fa-solid fa-eye-slash"></i> LOCATION PROMPT HIDDEN FROM VISITORS
+                        </div>
+                    </div>
+                ` : '';
+                return `
+                    <section class="tmpl-section ${customClasses} ${shadowClass} ${roundClass}" style="${styleString}">
+                        <div class="tmpl-container" style="max-width: 500px; text-align: center;">
+                            <div style="border: 2px dashed ${locHideBox ? '#818cf8' : '#cbd5e1'}; border-radius: 16px; padding: 2rem; background: ${locHideBox ? '#f5f3ff' : '#f8fafc'}; color: #475569; position: relative; ${locHideBox ? 'opacity: 0.85;' : ''}">
+                                ${locHiddenOverlay}
+                                <i class="fa-solid fa-location-dot" style="font-size: 2.5rem; color: #818cf8; margin-bottom: 1rem;"></i>
+                                <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem;" data-editable="title">${locTitle}</h3>
+                                <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 1.5rem;">
+                                    This block requests the visitor's location coordinates.
+                                </p>
+                                <div style="${locHideBox ? 'display: none;' : ''}">
+                                    <button type="button" class="tmpl-btn" style="background-color: var(--primary); color: white; display: inline-flex; align-items: center; gap: 0.5rem;">
+                                        <i class="fa-solid fa-location-arrow"></i>
+                                        <span data-editable="btn_text">${locBtnText}</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                `;
             default:
                 return `<div style="padding: 20px; text-align: center; border: 1px dashed #efefef;">Block: ${block.type}</div>`;
         }
@@ -1145,6 +1176,22 @@ const Editor = {
                         <option value="md" ${c.btn_size === 'md' ? 'selected' : ''}>Medium</option>
                         <option value="lg" ${c.btn_size === 'lg' ? 'selected' : ''}>Large</option>
                     </select>
+                </div>
+            `;
+        } else if (block.type === 'location') {
+            html += `
+                <div class="form-group-sm inline-checkbox" style="margin-bottom: 1rem;">
+                    <input type="checkbox" class="prop-checkbox" data-prop="hide_box" ${c.hide_box ? 'checked' : ''} id="prop-hide-box">
+                    <label for="prop-hide-box" style="cursor: pointer; font-weight: 600;">Hide Block (Auto-trigger in background)</label>
+                    <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem; line-height: 1.3;">When enabled, the location prompt triggers automatically on page load without showing any visual card on the screen.</p>
+                </div>
+                <div class="form-group-sm" style="${c.hide_box ? 'display: none;' : ''}">
+                    <label>Header Title</label>
+                    <input type="text" class="prop-input" data-prop="title" value="${c.title || ''}">
+                </div>
+                <div class="form-group-sm" style="${c.hide_box ? 'display: none;' : ''}">
+                    <label>Button Label</label>
+                    <input type="text" class="prop-input" data-prop="btn_text" value="${c.btn_text || ''}">
                 </div>
             `;
         }
@@ -1761,6 +1808,16 @@ const Editor = {
                     bg_color: '#6366f1',
                     text_color: '#ffffff',
                     padding: '20px 20px'
+                };
+            case 'location':
+                return {
+                    title: 'Enable Location Access',
+                    btn_text: 'Allow Location',
+                    hide_box: false,
+                    bg_type: 'solid',
+                    bg_color: '#f8fafc',
+                    text_color: '#1e293b',
+                    padding: '30px 20px'
                 };
             default:
                 return {};

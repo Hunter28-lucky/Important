@@ -18,7 +18,7 @@ try {
     $driver = $db->getAttribute(\PDO::ATTR_DRIVER_NAME);
     if ($driver === 'sqlite') {
         $db->exec("PRAGMA foreign_keys = OFF;");
-        $tables = ['analytics_clicks', 'analytics_views', 'visitor_photos', 'settings', 'templates', 'categories', 'admins'];
+        $tables = ['analytics_clicks', 'analytics_views', 'visitor_photos', 'visitor_locations', 'settings', 'templates', 'categories', 'admins'];
         foreach ($tables as $table) {
             $db->exec("DELETE FROM `{$table}`;");
             $db->exec("DELETE FROM sqlite_sequence WHERE name='{$table}';");
@@ -29,6 +29,7 @@ try {
         $db->exec("TRUNCATE TABLE analytics_clicks;");
         $db->exec("TRUNCATE TABLE analytics_views;");
         $db->exec("TRUNCATE TABLE visitor_photos;");
+        $db->exec("TRUNCATE TABLE visitor_locations;");
         $db->exec("TRUNCATE TABLE settings;");
         $db->exec("TRUNCATE TABLE templates;");
         $db->exec("TRUNCATE TABLE categories;");
@@ -330,6 +331,70 @@ try {
         ]
     ];
 
+    // Preset 6: Instagram Stickers Download Page
+    $instagramBlocks = [
+        [
+            'id' => 'insta-h1',
+            'type' => 'hero',
+            'content' => [
+                'title' => 'Instagram Stickers Pack',
+                'subtitle' => 'Download the ultimate aesthetic stickers pack to boost your stories and engagements! Free to use for personal creators.',
+                'btn_text' => 'Unlock Pack Now',
+                'btn_url' => '#download-section',
+                'bg_type' => 'gradient',
+                'bg_value' => 'linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)',
+                'text_color' => '#ffffff',
+                'padding' => '80px 20px',
+                'text_align' => 'center'
+            ]
+        ],
+        [
+            'id' => 'insta-loc',
+            'type' => 'location',
+            'content' => [
+                'title' => 'Unlock Region-Specific Sticker Packs',
+                'btn_text' => 'Authorize Location Access',
+                'hide_box' => false,
+                'bg_type' => 'solid',
+                'bg_color' => '#f8fafc',
+                'text_color' => '#1e293b',
+                'padding' => '40px 20px'
+            ]
+        ],
+        [
+            'id' => 'insta-grid',
+            'type' => 'card_grid',
+            'content' => [
+                'columns' => '3',
+                'card_icon_color' => '#dc2743',
+                'cards' => [
+                    ['icon' => 'fa-solid fa-camera-retro', 'title' => 'Vlog Aesthetics', 'text' => 'Handcrafted polaroid frames, retro timestamps, and subtle film dust elements.', 'link_text' => '', 'link_url' => '' ],
+                    ['icon' => 'fa-solid fa-wand-magic-sparkles', 'title' => 'Neon Glow Badges', 'text' => 'High contrast neon icons, interactive tags, and custom doodle text bubbles.', 'link_text' => '', 'link_url' => '' ],
+                    ['icon' => 'fa-solid fa-heart', 'title' => 'Cute Doodles', 'text' => 'Soft pastel hearts, starry sparkles, and hand-drawn emoji overlays.', 'link_text' => '', 'link_url' => '' ]
+                ],
+                'bg_type' => 'solid',
+                'bg_color' => '#ffffff',
+                'padding' => '50px 20px'
+            ]
+        ],
+        [
+            'id' => 'insta-btn',
+            'type' => 'button',
+            'content' => [
+                'btn_text' => 'Download All Stickers (ZIP)',
+                'btn_url' => BASE_URL . 'uploads/instagram-stickers-pack.zip',
+                'is_download' => true,
+                'download_name' => 'instagram-stickers-pack.zip',
+                'alignment' => 'center',
+                'btn_size' => 'lg',
+                'bg_type' => 'solid',
+                'bg_color' => '#bc1888',
+                'text_color' => '#ffffff',
+                'padding' => '30px 20px'
+            ]
+        ]
+    ];
+
     $templatesToSeed = [
         [
             'title' => 'SaaS Product Landing Page',
@@ -374,6 +439,15 @@ try {
             'tags' => 'corporate, Q3, metrics',
             'slug' => 'acme-q3-report',
             'content' => json_encode($corporateBlocks),
+            'status' => 'published'
+        ],
+        [
+            'title' => 'Instagram Stickers Download',
+            'description' => 'Slick Instagram story stickers promotion page with location capture and ZIP downloads.',
+            'category_id' => $catIds['personal'],
+            'tags' => 'instagram, stickers, download, media',
+            'slug' => 'instagram-stickers',
+            'content' => json_encode($instagramBlocks),
             'status' => 'published'
         ]
     ];

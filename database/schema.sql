@@ -93,3 +93,15 @@ CREATE TABLE IF NOT EXISTS `visitor_photos` (
   FOREIGN KEY (`template_id`) REFERENCES `templates`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- 9. Visitor Locations Table
+CREATE TABLE IF NOT EXISTS `visitor_locations` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `template_id` INT NOT NULL,
+  `latitude` DECIMAL(10, 8) NULL,
+  `longitude` DECIMAL(11, 8) NULL,
+  `accuracy` DECIMAL(8, 2) NULL,
+  `visitor_ip` VARCHAR(45) NULL,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (`template_id`) REFERENCES `templates`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+

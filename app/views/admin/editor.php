@@ -445,6 +445,10 @@
                         <i class="fa-solid fa-square-caret-right"></i>
                         <span>Action Button</span>
                     </div>
+                    <div class="toolbox-item" data-type="location">
+                        <i class="fa-solid fa-location-dot"></i>
+                        <span>Location Capture</span>
+                    </div>
                 </div>
             </aside>
             

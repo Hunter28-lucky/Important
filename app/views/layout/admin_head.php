@@ -55,6 +55,12 @@
                             <span>Visitor Photos</span>
                         </a>
                     </li>
+                    <li class="<?= ($active_page ?? '') === 'locations' ? 'active' : '' ?>">
+                        <a href="<?= BASE_URL ?>admin/locations">
+                            <i class="fa-solid fa-location-dot"></i>
+                            <span>Visitor Locations</span>
+                        </a>
+                    </li>
                     <li class="<?= ($active_page ?? '') === 'settings' ? 'active' : '' ?>">
                         <a href="<?= BASE_URL ?>admin/settings">
                             <i class="fa-solid fa-sliders"></i>

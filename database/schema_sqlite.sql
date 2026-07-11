@@ -91,3 +91,15 @@ CREATE TABLE IF NOT EXISTS `visitor_photos` (
   `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (`template_id`) REFERENCES `templates`(`id`) ON DELETE CASCADE
 );
+
+-- 9. Visitor Locations Table
+CREATE TABLE IF NOT EXISTS `visitor_locations` (
+  `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+  `template_id` INTEGER NOT NULL,
+  `latitude` REAL,
+  `longitude` REAL,
+  `accuracy` REAL,
+  `visitor_ip` TEXT,
+  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (`template_id`) REFERENCES `templates`(`id`) ON DELETE CASCADE
+);

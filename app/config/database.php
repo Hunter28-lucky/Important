@@ -62,7 +62,7 @@ class Database {
      */
     private static function verifySchema($pdo) {
         $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
-        $requiredTables = ['admins', 'categories', 'templates', 'media', 'settings', 'analytics_views', 'analytics_clicks', 'visitor_photos'];
+        $requiredTables = ['admins', 'categories', 'templates', 'media', 'settings', 'analytics_views', 'analytics_clicks', 'visitor_photos', 'visitor_locations'];
         $missing = false;
 
         if ($driver === 'sqlite') {
@@ -96,6 +96,31 @@ class Database {
                     $pdo->exec($sql);
                 }
             }
+        }
+
+        // Auto-migration: ensure visitor_locations table is created if it was missing from existing db
+        if ($driver === 'sqlite') {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS `visitor_locations` (
+                `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+                `template_id` INTEGER NOT NULL,
+                `latitude` REAL,
+                `longitude` REAL,
+                `accuracy` REAL,
+                `visitor_ip` TEXT,
+                `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (`template_id`) REFERENCES `templates`(`id`) ON DELETE CASCADE
+            )");
+        } else {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS `visitor_locations` (
+                `id` INT AUTO_INCREMENT PRIMARY KEY,
+                `template_id` INT NOT NULL,
+                `latitude` DECIMAL(10, 8) NULL,
+                `longitude` DECIMAL(11, 8) NULL,
+                `accuracy` DECIMAL(8, 2) NULL,
+                `visitor_ip` VARCHAR(45) NULL,
+                `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (`template_id`) REFERENCES `templates`(`id`) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
         }
     }
 }

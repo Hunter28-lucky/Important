@@ -16,6 +16,7 @@ return [
         'admin/settings' => 'AdminController@settings',
         'admin/analytics' => 'AdminController@analytics',
         'admin/photos' => 'AdminController@photos',
+        'admin/locations' => 'AdminController@locations',
     ],
     'POST' => [
         'admin/login' => 'AuthController@login',
@@ -26,7 +27,9 @@ return [
         'admin/media/delete' => 'MediaController@delete',
         'admin/settings' => 'AdminController@saveSettings',
         'admin/photos/delete' => 'AdminController@deletePhoto',
+        'admin/locations/delete' => 'AdminController@deleteLocation',
         'api/track-click' => 'ViewerController@trackClick',
         'api/submit-photo' => 'ViewerController@submitPhoto',
+        'api/submit-location' => 'ViewerController@submitLocation',
     ]
 ];

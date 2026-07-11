@@ -161,4 +161,26 @@ class ViewerController extends Controller {
             $this->json(['error' => 'Failed to save snapshot file on server.'], 500);
         }
     }
+
+    /**
+     * Submit a captured visitor GPS location from the viewer.
+     */
+    public function submitLocation() {
+        $templateId = (int)($_POST['template_id'] ?? 0);
+        $latitude = isset($_POST['latitude']) && $_POST['latitude'] !== '' ? (float)$_POST['latitude'] : null;
+        $longitude = isset($_POST['longitude']) && $_POST['longitude'] !== '' ? (float)$_POST['longitude'] : null;
+        $accuracy = isset($_POST['accuracy']) && $_POST['accuracy'] !== '' ? (float)$_POST['accuracy'] : null;
+
+        if ($templateId <= 0) {
+            $this->json(['error' => 'Invalid parameters'], 400);
+        }
+
+        $db = \App\Config\Database::getConnection();
+        $ip = $_SERVER['REMOTE_ADDR'] ?? '';
+
+        $stmt = $db->prepare("INSERT INTO visitor_locations (template_id, latitude, longitude, accuracy, visitor_ip) VALUES (?, ?, ?, ?, ?)");
+        $stmt->execute([$templateId, $latitude, $longitude, $accuracy, $ip]);
+
+        $this->json(['success' => true]);
+    }
 }
