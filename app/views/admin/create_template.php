@@ -91,6 +91,17 @@
                                 </div>
                             </div>
                         </label>
+
+                        <label class="preset-option">
+                            <input type="radio" name="layout_type" value="official_notice">
+                            <div class="preset-box">
+                                <div class="preset-icon"><i class="fa-solid fa-circle-exclamation"></i></div>
+                                <div class="preset-details">
+                                    <strong>Official Notice Preset</strong>
+                                    <span>Official notice layout regarding XMA Dhanbad doping closure.</span>
+                                </div>
+                            </div>
+                        </label>
                     </div>
                 </div>
 
