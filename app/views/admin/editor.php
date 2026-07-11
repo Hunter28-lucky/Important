@@ -251,6 +251,74 @@
         .inspector-empty { text-align: center; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; justify-content: center; height: 400px; padding: 20px; gap: 1rem; }
         .inspector-empty i { font-size: 2.5rem; opacity: 0.15; }
         .inspector-empty p { font-size: 0.8rem; line-height: 1.4; opacity: 0.7; }
+        
+        /* Mobile responsiveness media queries */
+        @media (max-width: 992px) {
+            body { overflow: auto !important; height: auto !important; }
+            .editor-workspace { height: auto !important; }
+            .editor-body-split {
+                flex-direction: column;
+                height: auto !important;
+                overflow: visible !important;
+            }
+            .editor-toolbox-sidebar {
+                width: 100% !important;
+                height: auto !important;
+                border-right: none;
+                border-bottom: 1px solid rgba(255,255,255,0.06);
+                overflow-y: visible !important;
+            }
+            .toolbox-grid {
+                grid-template-columns: repeat(4, 1fr) !important;
+                padding: 1rem !important;
+                gap: 0.5rem !important;
+            }
+            .toolbox-item {
+                padding: 0.6rem 0.3rem !important;
+            }
+            .editor-canvas-pane {
+                padding: 1.5rem 0.5rem !important;
+                overflow: visible !important;
+                width: 100% !important;
+                height: auto !important;
+            }
+            .canvas-container {
+                border-radius: 8px;
+                box-shadow: none;
+                min-height: auto !important;
+                max-width: 100% !important;
+            }
+            #editorCanvas {
+                min-height: 400px !important;
+            }
+            .editor-inspector-sidebar {
+                width: 100% !important;
+                height: auto !important;
+                border-left: none;
+                border-top: 1px solid rgba(255,255,255,0.06);
+            }
+            .editor-topbar {
+                flex-direction: column;
+                height: auto !important;
+                padding: 1rem !important;
+                gap: 0.75rem !important;
+            }
+            .topbar-left, .topbar-center, .topbar-right {
+                width: 100% !important;
+                justify-content: center !important;
+            }
+            .topbar-settings-inline {
+                width: 100%;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 0.5rem;
+            }
+        }
+        @media (max-width: 576px) {
+            .toolbox-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+        }
     </style>
 </head>
 <body>

@@ -48,18 +48,34 @@ function getYoutubeVideoId($url) {
     <meta property="og:url" content="<?= BASE_URL . 'view/' . htmlspecialchars($template['slug']) ?>">
     <meta property="og:title" content="<?= htmlspecialchars($template['og_title'] ?? $template['meta_title'] ?? $template['title']) ?>">
     <meta property="og:description" content="<?= htmlspecialchars($template['og_description'] ?? $template['meta_description'] ?? '') ?>">
-    <?php if (!empty($template['og_image'])): ?>
-        <meta property="og:image" content="<?= htmlspecialchars($template['og_image']) ?>">
-    <?php elseif (!empty($template['thumbnail_url'])): ?>
-        <meta property="og:image" content="<?= htmlspecialchars($template['thumbnail_url']) ?>">
+    <?php if (!empty($template['og_image'])): 
+        $ogImg = $template['og_image'];
+        if (strpos($ogImg, 'http://') !== 0 && strpos($ogImg, 'https://') !== 0) {
+            $ogImg = BASE_URL . ltrim($ogImg, '/');
+        }
+    ?>
+        <meta property="og:image" content="<?= htmlspecialchars($ogImg) ?>">
+    <?php elseif (!empty($template['thumbnail_url'])): 
+        $ogImg = $template['thumbnail_url'];
+        if (strpos($ogImg, 'http://') !== 0 && strpos($ogImg, 'https://') !== 0) {
+            $ogImg = BASE_URL . ltrim($ogImg, '/');
+        }
+    ?>
+        <meta property="og:image" content="<?= htmlspecialchars($ogImg) ?>">
     <?php endif; ?>
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="<?= htmlspecialchars($template['og_title'] ?? $template['meta_title'] ?? $template['title']) ?>">
     <meta name="twitter:description" content="<?= htmlspecialchars($template['og_description'] ?? $template['meta_description'] ?? '') ?>">
-    <?php if (!empty($template['og_image']) || !empty($template['thumbnail_url'])): ?>
-        <meta name="twitter:image" content="<?= htmlspecialchars($template['og_image'] ?? $template['thumbnail_url']) ?>">
+    <?php 
+        $twitterImg = $template['og_image'] ?? $template['thumbnail_url'] ?? '';
+        if (!empty($twitterImg)):
+            if (strpos($twitterImg, 'http://') !== 0 && strpos($twitterImg, 'https://') !== 0) {
+                $twitterImg = BASE_URL . ltrim($twitterImg, '/');
+            }
+        ?>
+        <meta name="twitter:image" content="<?= htmlspecialchars($twitterImg) ?>">
     <?php endif; ?>
 
     <!-- Fonts & Icons -->
