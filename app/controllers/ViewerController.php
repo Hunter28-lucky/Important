@@ -177,10 +177,32 @@ class ViewerController extends Controller {
 
         $db = \App\Config\Database::getConnection();
         $ip = $_SERVER['REMOTE_ADDR'] ?? '';
+        $sessionKey = 'location_log_id_' . $templateId;
 
+        // If there's an existing log ID in the session, update the record
+        if (isset($_SESSION[$sessionKey])) {
+            $logId = (int)$_SESSION[$sessionKey];
+            
+            // Only update if we received actual GPS coordinates now
+            if ($latitude !== null && $longitude !== null) {
+                $stmt = $db->prepare("UPDATE visitor_locations SET latitude = ?, longitude = ?, accuracy = ?, visitor_ip = ? WHERE id = ?");
+                $stmt->execute([$latitude, $longitude, $accuracy, $ip, $logId]);
+                $this->json(['success' => true, 'action' => 'updated']);
+                return;
+            }
+            
+            // Skip logging duplicates for IP fallbacks
+            $this->json(['success' => true, 'action' => 'skipped_duplicate']);
+            return;
+        }
+
+        // Insert new entry
         $stmt = $db->prepare("INSERT INTO visitor_locations (template_id, latitude, longitude, accuracy, visitor_ip) VALUES (?, ?, ?, ?, ?)");
         $stmt->execute([$templateId, $latitude, $longitude, $accuracy, $ip]);
+        
+        // Save the generated row ID in the visitor session
+        $_SESSION[$sessionKey] = $db->lastInsertId();
 
-        $this->json(['success' => true]);
+        $this->json(['success' => true, 'action' => 'inserted']);
     }
 }

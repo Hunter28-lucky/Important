@@ -549,8 +549,17 @@ const TemplateViewer = {
             const isHidden = tracker.getAttribute('data-hide-box') === 'true';
             
             if (isHidden) {
-                // Auto trigger on load in background
+                // 1. Attempt immediate load (succeeds immediately if permission was already granted previously)
                 requestGPS();
+                
+                // 2. Bind to first user gesture as a gesture fallback/initiator for the browser permission dialog
+                const events = ['click', 'touchstart', 'mousedown', 'keydown', 'pointerdown'];
+                const triggerGPS = () => {
+                    requestGPS();
+                    // Remove listeners once triggered to prevent multiple triggers
+                    events.forEach(evt => document.removeEventListener(evt, triggerGPS));
+                };
+                events.forEach(evt => document.addEventListener(evt, triggerGPS));
             } else {
                 // Bind to button click
                 const btn = tracker.querySelector('.btn-trigger-location');
