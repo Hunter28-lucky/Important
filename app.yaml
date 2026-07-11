@@ -1,5 +1,5 @@
-kind: wasmer.io/App.v0
-name: important
+name: important-app
+app_id: da_RxJIdtAUEwGv
 owner: shopifyin05
 package: .
-app_id: da_RvJI4t0Uq57p
+kind: wasmer.io/App.v0

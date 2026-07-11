@@ -28,6 +28,9 @@ if (isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
 // Find subdirectories if not running at root level
 $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
 $subDir = str_replace('/public/index.php', '', $scriptName);
+if ($subDir === '/index.php') {
+    $subDir = '';
+}
 $subDir = trim($subDir, '/');
 $baseUrl = $protocol . $host . ($subDir ? '/' . $subDir : '') . '/';
 define('BASE_URL', $baseUrl);
@@ -37,11 +40,21 @@ define('UPLOAD_DIR', APP_ROOT . '/public/uploads');
 define('UPLOAD_URL', BASE_URL . 'uploads/');
 
 // Database Configurations
-define('DB_ENGINE', 'mysql'); // Toggle: 'mysql' or 'sqlite'
-define('DB_HOST', '127.0.0.1');
-define('DB_USER', 'root');
-define('DB_PASS', '');
-define('DB_NAME', 'templatelink_builder');
+$isProduction = isset($_SERVER['HTTP_HOST']) && (strpos($_SERVER['HTTP_HOST'], 'importants.ct.ws') !== false);
+
+if ($isProduction) {
+    define('DB_ENGINE', 'mysql');
+    define('DB_HOST', 'sql206.infinityfree.com');
+    define('DB_USER', 'if0_42361626');
+    define('DB_PASS', 'Hunter054321');
+    define('DB_NAME', 'if0_42361626_db');
+} else {
+    define('DB_ENGINE', 'mysql'); // Toggle: 'mysql' or 'sqlite'
+    define('DB_HOST', '127.0.0.1');
+    define('DB_USER', 'root');
+    define('DB_PASS', '');
+    define('DB_NAME', 'templatelink_builder');
+}
 define('DB_SQLITE_PATH', APP_ROOT . '/database/database.sqlite');
 
 

@@ -1,6 +1,6 @@
 [package]
 name = "shopifyin05/templatelink-builder"
-version = "1.0.0"
+version = "1.0.1"
 description = "SaaS TemplateLink Builder Web App with SQLite/MySQL fallback and Webcam capture telemetry."
 license = "MIT"
 

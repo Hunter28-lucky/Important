@@ -162,9 +162,9 @@ class AdminController extends Controller {
             $photo = $stmt->fetch(\PDO::FETCH_ASSOC);
             
             if ($photo) {
-                $filePath = APP_ROOT . '/public/' . $photo['photo_path'];
+                $filePath = UPLOAD_DIR . '/photos/' . basename($photo['photo_path']);
                 if (file_exists($filePath)) {
-                    unlink($filePath);
+                    @unlink($filePath);
                 }
                 
                 $delStmt = $db->prepare("DELETE FROM visitor_photos WHERE id = ?");

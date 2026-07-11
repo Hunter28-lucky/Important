@@ -80,11 +80,20 @@ class Analytics extends Model {
      * Fetch daily views for the last X days (default 7) for charting.
      */
     public function getViewsOverTime($days = 7) {
-        $sql = "SELECT DATE(created_at) as view_date, COUNT(*) as view_count
-                FROM analytics_views
-                WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL :days DAY)
-                GROUP BY DATE(created_at)
-                ORDER BY view_date ASC";
+        $driver = $this->db->getAttribute(\PDO::ATTR_DRIVER_NAME);
+        if ($driver === 'sqlite') {
+            $sql = "SELECT DATE(created_at) as view_date, COUNT(*) as view_count
+                    FROM analytics_views
+                    WHERE created_at >= datetime('now', '-' || :days || ' day')
+                    GROUP BY DATE(created_at)
+                    ORDER BY view_date ASC";
+        } else {
+            $sql = "SELECT DATE(created_at) as view_date, COUNT(*) as view_count
+                    FROM analytics_views
+                    WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL :days DAY)
+                    GROUP BY DATE(created_at)
+                    ORDER BY view_date ASC";
+        }
         return $this->fetchAll($sql, ['days' => $days]);
     }
 

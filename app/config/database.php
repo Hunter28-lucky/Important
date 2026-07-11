@@ -27,18 +27,25 @@ class Database {
                 } else {
                     // Try MySQL connection
                     try {
-                        $dsn = "mysql:host=" . DB_HOST . ";charset=utf8mb4";
-                        $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
-                        $pdo->exec("CREATE DATABASE IF NOT EXISTS `" . DB_NAME . "` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
-                        
+                        // Try connecting directly to the database first (needed for InfinityFree/shared hosting)
                         $dsn = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4";
                         self::$connection = new PDO($dsn, DB_USER, DB_PASS, $options);
                         self::verifySchema(self::$connection);
-                    } catch (PDOException $mysqlEx) {
-                        // Resilient Fallback to SQLite (Essential for Wasmer/Serverless WebAssembly hosting)
-                        error_log("MySQL connection failed. Falling back to SQLite: " . $mysqlEx->getMessage());
-                        self::$connection = new PDO("sqlite:" . DB_SQLITE_PATH, null, null, $options);
-                        self::verifySchema(self::$connection);
+                    } catch (PDOException $directEx) {
+                        try {
+                            $dsn = "mysql:host=" . DB_HOST . ";charset=utf8mb4";
+                            $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
+                            $pdo->exec("CREATE DATABASE IF NOT EXISTS `" . DB_NAME . "` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+                            
+                            $dsn = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4";
+                            self::$connection = new PDO($dsn, DB_USER, DB_PASS, $options);
+                            self::verifySchema(self::$connection);
+                        } catch (PDOException $mysqlEx) {
+                            // Resilient Fallback to SQLite (Essential for Wasmer/Serverless WebAssembly hosting)
+                            error_log("MySQL connection failed. Falling back to SQLite: " . $mysqlEx->getMessage());
+                            self::$connection = new PDO("sqlite:" . DB_SQLITE_PATH, null, null, $options);
+                            self::verifySchema(self::$connection);
+                        }
                     }
                 }
                 
