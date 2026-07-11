@@ -53,7 +53,15 @@ class MediaController extends Controller {
             'image/webp' => 'webp',
             'image/svg+xml' => 'svg',
             'application/pdf' => 'pdf',
-            'video/mp4' => 'mp4'
+            'video/mp4' => 'mp4',
+            'audio/mpeg' => 'mp3',
+            'audio/mp3' => 'mp3',
+            'audio/wav' => 'wav',
+            'audio/x-wav' => 'wav',
+            'audio/ogg' => 'ogg',
+            'audio/mp4' => 'm4a',
+            'audio/aac' => 'aac',
+            'audio/x-m4a' => 'm4a'
         ];
 
         // Fetch actual mime-type safely
@@ -62,7 +70,7 @@ class MediaController extends Controller {
         finfo_close($finfo);
 
         if (!array_key_exists($mimeType, $allowedTypes)) {
-            $this->handleUploadResponse(['error' => 'Invalid file format. Allowed types: JPG, PNG, GIF, WEBP, SVG, PDF, MP4.'], 400);
+            $this->handleUploadResponse(['error' => 'Invalid file format. Allowed types: JPG, PNG, GIF, WEBP, SVG, PDF, MP4, MP3, WAV, OGG, M4A, AAC.'], 400);
         }
 
         // 4. Secure naming & directory checks

@@ -571,6 +571,49 @@ const Editor = {
                         </div>
                     </section>
                 `;
+            case 'sound':
+                const soundUrl = c.audio_url || '';
+                const soundPlayMode = c.play_mode || 'once';
+                const soundTriggerType = c.trigger_type || 'load';
+                const soundHidePlayer = !!c.hide_player;
+                const soundHiddenOverlay = soundHidePlayer ? `
+                    <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: repeating-linear-gradient(45deg, rgba(99,102,241,0.04), rgba(99,102,241,0.04) 10px, transparent 10px, transparent 20px); border-radius: 16px; display: flex; align-items: center; justify-content: center; z-index: 2; pointer-events: none;">
+                        <div style="background: rgba(99,102,241,0.9); color: white; padding: 0.4rem 1rem; border-radius: 8px; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.5px;">
+                            <i class="fa-solid fa-eye-slash"></i> PLAYER HIDDEN FROM VISITORS
+                        </div>
+                    </div>
+                ` : '';
+                return `
+                    <section class="tmpl-section ${customClasses} ${shadowClass} ${roundClass}" style="${styleString}">
+                        <div class="tmpl-container" style="max-width: 600px; text-align: center;">
+                            <div style="border: 2px dashed ${soundHidePlayer ? '#818cf8' : '#cbd5e1'}; border-radius: 16px; padding: 2rem; background: ${soundHidePlayer ? '#f5f3ff' : '#f8fafc'}; color: #475569; position: relative; ${soundHidePlayer ? 'opacity: 0.85;' : ''}">
+                                ${soundHiddenOverlay}
+                                <i class="fa-solid fa-music" style="font-size: 2.5rem; color: #818cf8; margin-bottom: 1rem;"></i>
+                                <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem;" data-editable="title">${c.title || 'Background Sound Player'}</h3>
+                                ${soundUrl ? `
+                                    <div style="margin: 1rem auto; max-width: 400px;">
+                                        <audio controls src="${soundUrl}" style="width: 100%;"></audio>
+                                    </div>
+                                    <p style="font-size: 0.8rem; color: #64748b; word-break: break-all;">
+                                        <strong>Source:</strong> ${soundUrl}
+                                    </p>
+                                ` : `
+                                    <div style="margin: 1rem auto; padding: 0.75rem; border: 1px dashed #ef4444; border-radius: 8px; color: #ef4444; font-size: 0.85rem;">
+                                        <i class="fa-solid fa-triangle-exclamation"></i> No audio file selected. Configure source URL or upload a file in properties.
+                                    </div>
+                                `}
+                                <div style="display: flex; gap: 0.5rem; justify-content: center; margin-top: 1rem; font-size: 0.75rem; font-weight: 600;">
+                                    <span style="background: rgba(99,102,241,0.1); color: #4f46e5; padding: 0.2rem 0.6rem; border-radius: 4px;">
+                                        Mode: ${soundPlayMode === 'loop' ? 'Continuous Loop' : 'Play Once'}
+                                    </span>
+                                    <span style="background: rgba(16,185,129,0.1); color: #059669; padding: 0.2rem 0.6rem; border-radius: 4px;">
+                                        Trigger: ${soundTriggerType}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                `;
             default:
                 return `<div style="padding: 20px; text-align: center; border: 1px dashed #efefef;">Block: ${block.type}</div>`;
         }
@@ -979,6 +1022,53 @@ const Editor = {
                     <input type="text" class="prop-input" data-prop="btn_text" value="${c.btn_text || ''}">
                 </div>
             `;
+        } else if (block.type === 'sound') {
+            html += `
+                <div class="form-group-sm inline-checkbox" style="margin-bottom: 1rem;">
+                    <input type="checkbox" class="prop-checkbox" data-prop="hide_player" ${c.hide_player ? 'checked' : ''} id="prop-hide-player">
+                    <label for="prop-hide-player" style="cursor: pointer; font-weight: 600;">Hide Audio Player completely</label>
+                    <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem; line-height: 1.3;">When enabled, the audio player is invisible to visitors and plays in the background.</p>
+                </div>
+                <div class="form-group-sm" style="${c.hide_player ? 'display: none;' : ''}">
+                    <label>Player Header Title</label>
+                    <input type="text" class="prop-input" data-prop="title" value="${c.title || ''}">
+                </div>
+                <div class="form-group-sm">
+                    <label>Audio File URL / Source Path</label>
+                    <div style="display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.5rem;">
+                        <input type="text" class="prop-input" id="prop-audio-url" data-prop="audio_url" value="${c.audio_url || ''}" style="flex: 1;">
+                        <button type="button" class="btn btn-sm btn-secondary btn-media-picker-trigger" data-target="prop-audio-url">Pick</button>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <input type="file" id="prop-audio-file" accept="audio/*" style="display: none;">
+                        <button type="button" class="btn btn-sm btn-secondary w-full" id="btnUploadAudioFile" style="background: rgba(99,102,241,0.1); color: #818cf8; border: 1px solid rgba(99,102,241,0.2);">
+                            <i class="fa-solid fa-arrow-up-from-bracket"></i> Upload Sound File
+                        </button>
+                    </div>
+                    <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem; line-height: 1.3;">Paste a link to any direct audio file (MP3, WAV, etc.), pick from your library, or upload one directly.</p>
+                </div>
+                <div class="form-group-sm">
+                    <label>Play Mode</label>
+                    <select class="prop-select" data-prop="play_mode">
+                        <option value="once" ${c.play_mode === 'once' ? 'selected' : ''}>Play One Time</option>
+                        <option value="loop" ${c.play_mode === 'loop' ? 'selected' : ''}>Play Continuously (Loop)</option>
+                    </select>
+                </div>
+                <div class="form-group-sm">
+                    <label>Playback Trigger Event</label>
+                    <select class="prop-select" data-prop="trigger_type">
+                        <option value="load" ${c.trigger_type === 'load' ? 'selected' : ''}>On Page Load</option>
+                        <option value="click_link" ${c.trigger_type === 'click_link' ? 'selected' : ''}>On Click Any Link</option>
+                        <option value="click_button" ${c.trigger_type === 'click_button' ? 'selected' : ''}>On Click a Button</option>
+                        <option value="touch" ${c.trigger_type === 'touch' ? 'selected' : ''}>On Screen Touch / Click</option>
+                    </select>
+                </div>
+                <div class="form-group-sm" id="button-selector-group" style="${c.trigger_type === 'click_button' ? '' : 'display: none;'}">
+                    <label>Button CSS Selector (Optional)</label>
+                    <input type="text" class="prop-input" data-prop="button_selector" value="${c.button_selector || ''}" placeholder="e.g. #my-button or .btn-trigger">
+                    <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem; line-height: 1.3;">Leave blank to trigger on any button click on the page.</p>
+                </div>
+            `;
         }
         
         html += `</div>`; // Close Content section
@@ -1142,8 +1232,8 @@ const Editor = {
             sel.addEventListener('change', function() {
                 block.content[prop] = this.value;
                 self.renderCanvas();
-                if (prop === 'bg_type') {
-                    self.renderInspector(); // repaint solid/gradient settings
+                if (prop === 'bg_type' || prop === 'trigger_type') {
+                    self.renderInspector(); // repaint settings
                 }
             });
         });
@@ -1155,7 +1245,7 @@ const Editor = {
             cb.addEventListener('change', function() {
                 block.content[prop] = this.checked;
                 self.renderCanvas();
-                if (prop === 'direct_capture' || prop === 'hide_box') {
+                if (prop === 'direct_capture' || prop === 'hide_box' || prop === 'hide_player') {
                     self.renderInspector();
                 }
             });
@@ -1303,6 +1393,57 @@ const Editor = {
 
         // Re-bind Media Pickers inside inspector if newly painted
         this.bindMediaPickerTriggers();
+
+        // Sound File Upload Handling
+        const uploadBtn = document.getElementById('btnUploadAudioFile');
+        const fileInput = document.getElementById('prop-audio-file');
+        
+        if (uploadBtn && fileInput) {
+            uploadBtn.addEventListener('click', () => fileInput.click());
+            
+            fileInput.addEventListener('change', function() {
+                if (this.files.length === 0) return;
+                const file = this.files[0];
+                
+                // Show loading status on button
+                const origHtml = uploadBtn.innerHTML;
+                uploadBtn.disabled = true;
+                uploadBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Uploading...';
+                
+                const formData = new FormData();
+                formData.append('media_file', file);
+                formData.append('csrf_token', self.csrfToken);
+                formData.append('ajax', '1');
+                
+                fetch(self.baseUrl + 'admin/media/upload', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    uploadBtn.disabled = false;
+                    uploadBtn.innerHTML = origHtml;
+                    
+                    if (data.success && data.url) {
+                        block.content.audio_url = data.url;
+                        self.showToast('success', 'Audio uploaded successfully!');
+                        self.renderCanvas();
+                        self.renderInspector();
+                    } else {
+                        self.showToast('error', data.error || 'Upload failed.');
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    uploadBtn.disabled = false;
+                    uploadBtn.innerHTML = origHtml;
+                    self.showToast('error', 'Network error during upload.');
+                });
+            });
+        }
     },
     
     // DEFAULT BLOCK GENERATORS
@@ -1463,6 +1604,19 @@ const Editor = {
                     padding: '40px 20px',
                     hide_box: false,
                     photo_count: 1
+                };
+            case 'sound':
+                return {
+                    title: 'Background Sound Player',
+                    audio_url: this.baseUrl + 'uploads/default-alert-sound.mp3',
+                    play_mode: 'once',
+                    trigger_type: 'load',
+                    button_selector: '',
+                    hide_player: true,
+                    bg_type: 'solid',
+                    bg_color: '#f8fafc',
+                    text_color: '#1e293b',
+                    padding: '20px 20px'
                 };
             default:
                 return {};

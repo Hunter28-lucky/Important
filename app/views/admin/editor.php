@@ -369,6 +369,10 @@
                         <i class="fa-solid fa-camera"></i>
                         <span>Webcam Capture</span>
                     </div>
+                    <div class="toolbox-item" data-type="sound">
+                        <i class="fa-solid fa-music"></i>
+                        <span>Sound Block</span>
+                    </div>
                 </div>
             </aside>
             
@@ -415,9 +419,17 @@
                         <div class="picker-media-item" data-url="<?= $fullPathUrl ?>" title="Select: <?= htmlspecialchars($asset['file_name']) ?>">
                             <?php if ($isImg): ?>
                                 <img src="<?= $fullPathUrl ?>" alt="media" loading="lazy">
-                            <?php else: ?>
+                            <?php else: 
+                                $isAudio = strpos($asset['file_type'], 'audio/') === 0;
+                                $iconClass = 'fa-file';
+                                if ($asset['file_type'] === 'application/pdf') {
+                                    $iconClass = 'fa-file-pdf';
+                                } elseif ($isAudio) {
+                                    $iconClass = 'fa-file-audio';
+                                }
+                            ?>
                                 <div class="picker-icon-placeholder">
-                                    <i class="fa-solid <?= $asset['file_type'] === 'application/pdf' ? 'fa-file-pdf' : 'fa-file' ?>"></i>
+                                    <i class="fa-solid <?= $iconClass ?>"></i>
                                 </div>
                             <?php endif; ?>
                             <div class="picker-media-name"><?= htmlspecialchars($asset['file_name']) ?></div>

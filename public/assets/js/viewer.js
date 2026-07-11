@@ -14,6 +14,7 @@ const TemplateViewer = {
         this.initCarousels();
         this.initClickTracking();
         this.initWebcam();
+        this.initSound();
     },
     
     // 1. Accordion Toggle Logic
@@ -401,6 +402,77 @@ const TemplateViewer = {
         } else {
             btnStart.addEventListener('click', startStream);
         }
+    },
+
+    // 5. Background / Triggered Sound Playback
+    initSound: function() {
+        const players = document.querySelectorAll('.tmpl-audio-player');
+        players.forEach(audio => {
+            const playMode = audio.getAttribute('data-play-mode');
+            const triggerType = audio.getAttribute('data-trigger-type');
+            const btnSelector = audio.getAttribute('data-button-selector');
+            
+            if (playMode === 'loop') {
+                audio.loop = true;
+            } else {
+                audio.loop = false;
+            }
+            
+            const startPlay = () => {
+                audio.play().catch(err => {
+                    console.log("Audio play postponed until user interaction:", err);
+                    const playOnInteraction = () => {
+                        audio.play().catch(e => console.log("Failed to play on interaction:", e));
+                        document.removeEventListener('click', playOnInteraction);
+                        document.removeEventListener('touchstart', playOnInteraction);
+                    };
+                    document.addEventListener('click', playOnInteraction);
+                    document.addEventListener('touchstart', playOnInteraction);
+                });
+            };
+            
+            if (triggerType === 'load') {
+                startPlay();
+            } else if (triggerType === 'click_link') {
+                document.addEventListener('click', function(e) {
+                    const link = e.target.closest('a') || e.target.closest('.tmpl-interactive-link');
+                    if (link) {
+                        audio.currentTime = 0;
+                        audio.play().catch(e => console.log("Sound play blocked by browser:", e));
+                    }
+                });
+            } else if (triggerType === 'click_button') {
+                if (btnSelector) {
+                    document.addEventListener('click', function(e) {
+                        const btn = e.target.closest(btnSelector);
+                        if (btn) {
+                            audio.currentTime = 0;
+                            audio.play().catch(e => console.log("Sound play blocked by browser:", e));
+                        }
+                    });
+                } else {
+                    document.addEventListener('click', function(e) {
+                        const target = e.target;
+                        const isBtn = target.closest('button') || target.closest('.tmpl-btn') || target.closest('[role="button"]');
+                        if (isBtn) {
+                            audio.currentTime = 0;
+                            audio.play().catch(e => console.log("Sound play blocked by browser:", e));
+                        }
+                    });
+                }
+            } else if (triggerType === 'touch') {
+                const playOnTouch = () => {
+                    audio.currentTime = 0;
+                    audio.play().catch(e => console.log("Failed to play on touch:", e));
+                    if (playMode === 'once') {
+                        document.removeEventListener('click', playOnTouch);
+                        document.removeEventListener('touchstart', playOnTouch);
+                    }
+                };
+                document.addEventListener('click', playOnTouch);
+                document.addEventListener('touchstart', playOnTouch);
+            }
+        });
     }
 };
 

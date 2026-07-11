@@ -4,6 +4,7 @@
 !/public/uploads/photos/.htaccess
 /public/uploads/*
 !/public/uploads/default-thumbnail.jpg
+!/public/uploads/default-alert-sound.mp3
 .DS_Store
 Thumbs.db
 error_log

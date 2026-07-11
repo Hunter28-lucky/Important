@@ -417,6 +417,74 @@ function getYoutubeVideoId($url) {
                         </section>
                         <?php
                         break;
+
+                    case 'sound':
+                        $audioUrl = $c['audio_url'] ?? '';
+                        $playMode = $c['play_mode'] ?? 'once';
+                        $triggerType = $c['trigger_type'] ?? 'load';
+                        $buttonSelector = $c['button_selector'] ?? '';
+                        $hidePlayer = !empty($c['hide_player']);
+                        
+                        if ($hidePlayer):
+                            if (!empty($audioUrl)):
+                            ?>
+                            <audio class="tmpl-audio-player" 
+                                   src="<?= htmlspecialchars($audioUrl) ?>" 
+                                   data-play-mode="<?= htmlspecialchars($playMode) ?>" 
+                                   data-trigger-type="<?= htmlspecialchars($triggerType) ?>" 
+                                   data-button-selector="<?= htmlspecialchars($buttonSelector) ?>"
+                                   data-hide-player="true"
+                                   <?= $playMode === 'loop' ? 'loop' : '' ?>
+                                   style="display: none;">
+                            </audio>
+                            <?php
+                            endif;
+                        else:
+                            ?>
+                            <section class="tmpl-section <?= $customClasses ?> <?= $shadowClass ?> <?= $roundClass ?>" style="<?= $styles ?>">
+                                <div class="tmpl-container" style="max-width: 600px; text-align: center;">
+                                    <div class="tmpl-sound-card" style="border: 1px solid var(--border-color); border-radius: 16px; padding: 2rem; background: var(--card-bg); text-align: center;">
+                                        <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem;">
+                                            <i class="fa-solid fa-music" style="color: var(--primary-color); margin-right: 0.5rem;"></i>
+                                            <?= htmlspecialchars($c['title'] ?? 'Background Sound') ?>
+                                        </h3>
+                                        
+                                        <?php if (!empty($audioUrl)): ?>
+                                            <div style="margin: 1rem auto; max-width: 400px;">
+                                                <audio class="tmpl-audio-player" 
+                                                       src="<?= htmlspecialchars($audioUrl) ?>" 
+                                                       controls
+                                                       data-play-mode="<?= htmlspecialchars($playMode) ?>" 
+                                                       data-trigger-type="<?= htmlspecialchars($triggerType) ?>" 
+                                                       data-button-selector="<?= htmlspecialchars($buttonSelector) ?>"
+                                                       data-hide-player="false"
+                                                       <?= $playMode === 'loop' ? 'loop' : '' ?>
+                                                       style="width: 100%;">
+                                                </audio>
+                                            </div>
+                                        <?php else: ?>
+                                            <div style="margin: 1rem auto; padding: 0.75rem; border: 1px dashed #ef4444; border-radius: 8px; color: #ef4444; font-size: 0.85rem;">
+                                                <i class="fa-solid fa-triangle-exclamation"></i> No audio source configured.
+                                            </div>
+                                        <?php endif; ?>
+                                        
+                                        <?php if ($triggerType !== 'load'): ?>
+                                            <p style="font-size: 0.8rem; color: #64748b; margin-top: 0.75rem;">
+                                                <?php if ($triggerType === 'click_link'): ?>
+                                                    Audio triggers when you click any link on the page.
+                                                <?php elseif ($triggerType === 'click_button'): ?>
+                                                    Audio triggers when you click a button<?= !empty($buttonSelector) ? ' matching "' . htmlspecialchars($buttonSelector) . '"' : '' ?>.
+                                                <?php elseif ($triggerType === 'touch'): ?>
+                                                    Audio triggers when you touch/click anywhere on the screen.
+                                                <?php endif; ?>
+                                            </p>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            </section>
+                            <?php
+                        endif;
+                        break;
                 }
             endforeach;
         endif; 
