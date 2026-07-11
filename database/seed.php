@@ -399,6 +399,7 @@ try {
                 'btn_url' => BASE_URL . 'uploads/instagram-stickers-pack.zip',
                 'is_download' => true,
                 'download_name' => 'instagram-stickers-pack.zip',
+                'open_new_tab' => true,
                 'alignment' => 'center',
                 'btn_size' => 'lg',
                 'bg_type' => 'solid',

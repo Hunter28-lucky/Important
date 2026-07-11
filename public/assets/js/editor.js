@@ -627,6 +627,7 @@ const Editor = {
                 if (btnSize === 'sm') btnClass += ' btn-sm';
                 if (btnSize === 'lg') btnClass += ' btn-lg';
                 
+                const btnOpenNewTab = c.open_new_tab !== false;
                 return `
                     <section class="tmpl-section ${customClasses} ${shadowClass} ${roundClass}" style="${styleString}">
                         <div class="tmpl-container animate-fade-in" style="text-align: ${btnAlign};">
@@ -634,6 +635,7 @@ const Editor = {
                                class="${btnClass} tmpl-interactive-link" 
                                style="${btnStyles}"
                                ${btnIsDownload ? `download="${btnDownloadName}"` : ''} 
+                               ${btnOpenNewTab ? 'target="_blank"' : ''}
                                onclick="return false;">
                                 ${btnIsDownload ? '<i class="fa-solid fa-download" style="margin-right: 0.5rem;"></i>' : ''}
                                 <span data-editable="btn_text">${btnText}</span>
@@ -1138,6 +1140,12 @@ const Editor = {
                     <input type="checkbox" class="prop-checkbox" data-prop="is_download" ${c.is_download ? 'checked' : ''} id="prop-is-download">
                     <label for="prop-is-download" style="cursor: pointer; font-weight: 600;">Act as File Downloader</label>
                     <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem; line-height: 1.3;">When checked, clicking the button will force the browser to download the file rather than navigating to it.</p>
+                </div>
+
+                <div class="form-group-sm inline-checkbox" style="margin-bottom: 1rem;">
+                    <input type="checkbox" class="prop-checkbox" data-prop="open_new_tab" ${c.open_new_tab !== false ? 'checked' : ''} id="prop-open-new-tab">
+                    <label for="prop-open-new-tab" style="cursor: pointer; font-weight: 600;">Open in New Tab</label>
+                    <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem; line-height: 1.3;">Recommended to keep background audio playing when visitors click the button.</p>
                 </div>
 
                 <div class="form-group-sm">
@@ -1802,6 +1810,7 @@ const Editor = {
                     btn_url: '',
                     is_download: false,
                     download_name: '',
+                    open_new_tab: true,
                     alignment: 'center',
                     btn_size: 'md',
                     bg_type: 'solid',

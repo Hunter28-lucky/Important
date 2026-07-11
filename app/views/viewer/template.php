@@ -509,6 +509,7 @@ function getYoutubeVideoId($url) {
                         $btnAlign = $c['alignment'] ?? 'center';
                         $btnIsDownload = !empty($c['is_download']);
                         $btnDownloadName = $c['download_name'] ?? '';
+                        $btnOpenNewTab = isset($c['open_new_tab']) ? !empty($c['open_new_tab']) : true;
                         
                         $btnStyles = "background-color: " . ($c['bg_color'] ?? '#6366f1') . "; color: " . ($c['text_color'] ?? '#ffffff') . ";";
                         $btnClass = 'tmpl-btn';
@@ -520,7 +521,8 @@ function getYoutubeVideoId($url) {
                                 <a href="<?= htmlspecialchars($btnUrl) ?>" 
                                    class="<?= $btnClass ?> tmpl-interactive-link" 
                                    style="<?= $btnStyles ?>"
-                                   <?= $btnIsDownload ? 'download="' . htmlspecialchars($btnDownloadName) . '"' : '' ?>>
+                                   <?= $btnIsDownload ? 'download="' . htmlspecialchars($btnDownloadName) . '"' : '' ?>
+                                   <?= $btnOpenNewTab ? 'target="_blank" rel="noopener noreferrer"' : '' ?>>
                                     <?php if ($btnIsDownload): ?>
                                         <i class="fa-solid fa-download" style="margin-right: 0.5rem;"></i>
                                     <?php endif; ?>
